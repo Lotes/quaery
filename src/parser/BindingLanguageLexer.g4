@@ -7,7 +7,7 @@ mode WITHIN_BINDING_MODE;
 TRUE: 'true';
 FALSE: 'false';
 NULL: 'null';
-STRING: '"' ('\\' [\\"] | [^"\\]) '"';
+STRING: '"' (~'\\' | '\\"' | '\\\\')* '"';
 RMUSTACHE: '}}' -> mode(DEFAULT_MODE);
 LPAREN: '(';
 RPAREN: ')';

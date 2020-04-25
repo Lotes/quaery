@@ -19,4 +19,23 @@ describe("parse", () => {
     }]);
   });
 
+  it("should parse NUMBER binding", () => {
+    expect(parse("{{1234.5678}}")).toEqual([{
+      kind: ChunkKind.Binding,
+      payload: {
+        kind: BindingExpressionKind.Number,
+        payload: 1234.5678
+      }
+    }]);
+  });
+
+  it("should parse STRING binding", () => {
+    expect(parse("{{\"string\"}}")).toEqual([{
+      kind: ChunkKind.Binding,
+      payload: {
+        kind: BindingExpressionKind.String,
+        payload: "string"
+      }
+    }]);
+  });
 });
