@@ -19,7 +19,7 @@ RMUSTACHE: '}}' -> mode(DEFAULT_MODE);
 LPAREN: '(';
 RPAREN: ')';
 DOT: '.';
-ID: [A-Z][A-Za-z0-9_]*;
+ID: [A-Za-z_][A-Za-z0-9_]*;
 NUMBER: DIGIT+ (DOT DIGIT+)?;
 COMMA: ',';
 

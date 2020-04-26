@@ -135,4 +135,21 @@ describe("parse", () => {
     }]);
   });
 
+
+  it("should parse parameterless global function binding", () => {
+    expect(parse("{{random()}}")).toEqual([{
+      kind: ChunkKind.Binding,
+      payload: {
+        kind: BindingExpressionKind.FunctionCall,
+        payload: {
+          parameters: [],
+          operand: {
+            kind: BindingExpressionKind.Identifier,
+            payload: "random"
+          }
+        }
+      }
+    }]);
+  });
+
 });
