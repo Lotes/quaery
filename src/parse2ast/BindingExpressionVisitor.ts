@@ -2,13 +2,41 @@ import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguag
 import { BindingExpression, BindingExpressionKind, UnitAnnotationPayload, Unit } from "../ast/SyntaxTree";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext, BindingExpressionContext } from "../parser/generated/BindingLanguageParser";
-import { BindingLanguageLexer } from "../parser/generated/BindingLanguageLexer";
+import { TailVisitor, MemberAccessKind } from "./TailVisitor";
 
 export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingExpression> implements BindingLanguageParserVisitor<BindingExpression> {
-  visitIdExpression = (ctx: IdExpressionContext) => ({
-    kind: BindingExpressionKind.Identifier,
-    payload: ctx._name.text
-  } as BindingExpression);
+  private tailVisitor = new TailVisitor(this);
+
+  visitIdExpression = (ctx: IdExpressionContext) => {
+    const tail = ctx._next != null ? this.tailVisitor.visit(ctx._next) : [];
+    const leaf: BindingExpression = {
+      kind: BindingExpressionKind.Identifier,
+      payload: ctx._name.text!
+    };
+    return tail.reduce((lhs, rhs) => {
+      const kind = rhs.kind === MemberAccessKind.Property
+        ? BindingExpressionKind.PropertyAccess
+        : BindingExpressionKind.FunctionCall;
+      const operand = lhs;
+      if (kind === BindingExpressionKind.PropertyAccess) {
+        return {
+          kind,
+          payload: {
+            operand,
+            propertyName: rhs.payload as string
+          }
+        } as BindingExpression;
+      } else {
+        return {
+          kind,
+          payload: {
+            operand,
+            parameters: rhs.payload as BindingExpression[]
+          }
+        } as BindingExpression;
+      }
+    }, leaf);
+  };
 
   visitNumberLiteral = (ctx: NumberLiteralContext) => ({
     kind: BindingExpressionKind.Number,
@@ -37,9 +65,6 @@ export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingEx
     kind: BindingExpressionKind.Null,
     payload: null
   } as BindingExpression);
-
-  // visitPropertyTail?: ((ctx: PropertyTailContext) => BindingExpression) | undefined;
-  // visitFunctionCallTail?: ((ctx: FunctionCallTailContext) => BindingExpression) | undefined;
 
   visitBinding = (ctx: BindingContext) => this.visit(ctx.bindingExpression());
 

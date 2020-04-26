@@ -39,12 +39,10 @@ export class BindingLanguageParser extends Parser {
 	public static readonly LPAREN = 9;
 	public static readonly RPAREN = 10;
 	public static readonly DOT = 11;
-	public static readonly INCH = 12;
-	public static readonly ID = 13;
-	public static readonly NUMBER = 14;
-	public static readonly DIGIT = 15;
-	public static readonly COMMA = 16;
-	public static readonly WS = 17;
+	public static readonly ID = 12;
+	public static readonly NUMBER = 13;
+	public static readonly COMMA = 14;
+	public static readonly WS = 15;
 	public static readonly RULE_chunks = 0;
 	public static readonly RULE_chunk = 1;
 	public static readonly RULE_binding = 2;
@@ -63,13 +61,11 @@ export class BindingLanguageParser extends Parser {
 
 	private static readonly _LITERAL_NAMES: Array<string | undefined> = [
 		undefined, "'{{'", undefined, undefined, "'true'", "'false'", "'null'", 
-		undefined, "'}}'", "'('", "')'", "'.'", "'inch'", undefined, undefined, 
-		undefined, "','",
+		undefined, "'}}'", "'('", "')'", "'.'", undefined, undefined, "','",
 	];
 	private static readonly _SYMBOLIC_NAMES: Array<string | undefined> = [
 		undefined, "LMUSTACHE", "TEXT", "UNIT", "TRUE", "FALSE", "NULL", "STRING", 
-		"RMUSTACHE", "LPAREN", "RPAREN", "DOT", "INCH", "ID", "NUMBER", "DIGIT", 
-		"COMMA", "WS",
+		"RMUSTACHE", "LPAREN", "RPAREN", "DOT", "ID", "NUMBER", "COMMA", "WS",
 	];
 	public static readonly VOCABULARY: Vocabulary = new VocabularyImpl(BindingLanguageParser._LITERAL_NAMES, BindingLanguageParser._SYMBOLIC_NAMES, []);
 
@@ -261,7 +257,7 @@ export class BindingLanguageParser extends Parser {
 				if (_la === BindingLanguageParser.LPAREN || _la === BindingLanguageParser.DOT) {
 					{
 					this.state = 41;
-					this.tail();
+					(_localctx as IdExpressionContext)._next = this.tail();
 					}
 				}
 
@@ -334,7 +330,6 @@ export class BindingLanguageParser extends Parser {
 			this._errHandler.sync(this);
 			switch (this._input.LA(1)) {
 			case BindingLanguageParser.DOT:
-				_localctx = new PropertyTailContext(_localctx);
 				this.enterOuterAlt(_localctx, 1);
 				{
 				this.state = 51;
@@ -342,7 +337,6 @@ export class BindingLanguageParser extends Parser {
 				}
 				break;
 			case BindingLanguageParser.LPAREN:
-				_localctx = new FunctionCallTailContext(_localctx);
 				this.enterOuterAlt(_localctx, 2);
 				{
 				this.state = 52;
@@ -462,7 +456,7 @@ export class BindingLanguageParser extends Parser {
 			this.enterOuterAlt(_localctx, 1);
 			{
 			this.state = 68;
-			this.parameter();
+			_localctx._lhs = this.parameter();
 			this.state = 71;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
@@ -471,7 +465,7 @@ export class BindingLanguageParser extends Parser {
 				this.state = 69;
 				this.match(BindingLanguageParser.COMMA);
 				this.state = 70;
-				this.parameters();
+				_localctx._rhs = this.parameters();
 				}
 			}
 
@@ -518,7 +512,7 @@ export class BindingLanguageParser extends Parser {
 	}
 
 	public static readonly _serializedATN: string =
-		"\x03\uC91D\uCABA\u058D\uAFBA\u4F53\u0607\uEA8B\uC241\x03\x13N\x04\x02" +
+		"\x03\uC91D\uCABA\u058D\uAFBA\u4F53\u0607\uEA8B\uC241\x03\x11N\x04\x02" +
 		"\t\x02\x04\x03\t\x03\x04\x04\t\x04\x04\x05\t\x05\x04\x06\t\x06\x04\x07" +
 		"\t\x07\x04\b\t\b\x04\t\t\t\x04\n\t\n\x04\v\t\v\x03\x02\x07\x02\x18\n\x02" +
 		"\f\x02\x0E\x02\x1B\v\x02\x03\x02\x03\x02\x03\x03\x03\x03\x05\x03!\n\x03" +
@@ -537,17 +531,17 @@ export class BindingLanguageParser extends Parser {
 		"\x02\x1F!\x05\x06\x04\x02 \x1E\x03\x02\x02\x02 \x1F\x03\x02\x02\x02!\x05" +
 		"\x03\x02\x02\x02\"#\x07\x03\x02\x02#$\x05\b\x05\x02$%\x07\n\x02\x02%\x07" +
 		"\x03\x02\x02\x02&(\x05\n\x06\x02\')\x07\x05\x02\x02(\'\x03\x02\x02\x02" +
-		"()\x03\x02\x02\x02)\t\x03\x02\x02\x02*,\x07\x0F\x02\x02+-\x05\f\x07\x02" +
-		",+\x03\x02\x02\x02,-\x03\x02\x02\x02-4\x03\x02\x02\x02.4\x07\x10\x02\x02" +
+		"()\x03\x02\x02\x02)\t\x03\x02\x02\x02*,\x07\x0E\x02\x02+-\x05\f\x07\x02" +
+		",+\x03\x02\x02\x02,-\x03\x02\x02\x02-4\x03\x02\x02\x02.4\x07\x0F\x02\x02" +
 		"/4\x07\t\x02\x0204\x07\x06\x02\x0214\x07\x07\x02\x0224\x07\b\x02\x023" +
 		"*\x03\x02\x02\x023.\x03\x02\x02\x023/\x03\x02\x02\x0230\x03\x02\x02\x02" +
 		"31\x03\x02\x02\x0232\x03\x02\x02\x024\v\x03\x02\x02\x0258\x05\x0E\b\x02" +
 		"68\x05\x10\t\x0275\x03\x02\x02\x0276\x03\x02\x02\x028\r\x03\x02\x02\x02" +
-		"9:\x07\r\x02\x02:<\x07\x0F\x02\x02;=\x05\f\x07\x02<;\x03\x02\x02\x02<" +
+		"9:\x07\r\x02\x02:<\x07\x0E\x02\x02;=\x05\f\x07\x02<;\x03\x02\x02\x02<" +
 		"=\x03\x02\x02\x02=\x0F\x03\x02\x02\x02>@\x07\v\x02\x02?A\x05\x12\n\x02" +
 		"@?\x03\x02\x02\x02@A\x03\x02\x02\x02AB\x03\x02\x02\x02BD\x07\f\x02\x02" +
 		"CE\x05\f\x07\x02DC\x03\x02\x02\x02DE\x03\x02\x02\x02E\x11\x03\x02\x02" +
-		"\x02FI\x05\x14\v\x02GH\x07\x12\x02\x02HJ\x05\x12\n\x02IG\x03\x02\x02\x02" +
+		"\x02FI\x05\x14\v\x02GH\x07\x10\x02\x02HJ\x05\x12\n\x02IG\x03\x02\x02\x02" +
 		"IJ\x03\x02\x02\x02J\x13\x03\x02\x02\x02KL\x05\b\x05\x02L\x15\x03\x02\x02" +
 		"\x02\f\x19 (,37<@DI";
 	public static __ATN: ATN;
@@ -749,6 +743,7 @@ export class ExpressionContext extends ParserRuleContext {
 }
 export class IdExpressionContext extends ExpressionContext {
 	public _name: Token;
+	public _next: TailContext;
 	public ID(): TerminalNode { return this.getToken(BindingLanguageParser.ID, 0); }
 	public tail(): TailContext | undefined {
 		return this.tryGetRuleContext(0, TailContext);
@@ -918,68 +913,33 @@ export class NullLiteralContext extends ExpressionContext {
 
 
 export class TailContext extends ParserRuleContext {
+	public property(): PropertyContext | undefined {
+		return this.tryGetRuleContext(0, PropertyContext);
+	}
+	public functionCall(): FunctionCallContext | undefined {
+		return this.tryGetRuleContext(0, FunctionCallContext);
+	}
 	constructor(parent: ParserRuleContext | undefined, invokingState: number) {
 		super(parent, invokingState);
 	}
 	// @Override
 	public get ruleIndex(): number { return BindingLanguageParser.RULE_tail; }
-	public copyFrom(ctx: TailContext): void {
-		super.copyFrom(ctx);
-	}
-}
-export class PropertyTailContext extends TailContext {
-	public property(): PropertyContext {
-		return this.getRuleContext(0, PropertyContext);
-	}
-	constructor(ctx: TailContext) {
-		super(ctx.parent, ctx.invokingState);
-		this.copyFrom(ctx);
-	}
 	// @Override
 	public enterRule(listener: BindingLanguageParserListener): void {
-		if (listener.enterPropertyTail) {
-			listener.enterPropertyTail(this);
+		if (listener.enterTail) {
+			listener.enterTail(this);
 		}
 	}
 	// @Override
 	public exitRule(listener: BindingLanguageParserListener): void {
-		if (listener.exitPropertyTail) {
-			listener.exitPropertyTail(this);
+		if (listener.exitTail) {
+			listener.exitTail(this);
 		}
 	}
 	// @Override
 	public accept<Result>(visitor: BindingLanguageParserVisitor<Result>): Result {
-		if (visitor.visitPropertyTail) {
-			return visitor.visitPropertyTail(this);
-		} else {
-			return visitor.visitChildren(this);
-		}
-	}
-}
-export class FunctionCallTailContext extends TailContext {
-	public functionCall(): FunctionCallContext {
-		return this.getRuleContext(0, FunctionCallContext);
-	}
-	constructor(ctx: TailContext) {
-		super(ctx.parent, ctx.invokingState);
-		this.copyFrom(ctx);
-	}
-	// @Override
-	public enterRule(listener: BindingLanguageParserListener): void {
-		if (listener.enterFunctionCallTail) {
-			listener.enterFunctionCallTail(this);
-		}
-	}
-	// @Override
-	public exitRule(listener: BindingLanguageParserListener): void {
-		if (listener.exitFunctionCallTail) {
-			listener.exitFunctionCallTail(this);
-		}
-	}
-	// @Override
-	public accept<Result>(visitor: BindingLanguageParserVisitor<Result>): Result {
-		if (visitor.visitFunctionCallTail) {
-			return visitor.visitFunctionCallTail(this);
+		if (visitor.visitTail) {
+			return visitor.visitTail(this);
 		} else {
 			return visitor.visitChildren(this);
 		}
@@ -1063,6 +1023,8 @@ export class FunctionCallContext extends ParserRuleContext {
 
 
 export class ParametersContext extends ParserRuleContext {
+	public _lhs: ParameterContext;
+	public _rhs: ParametersContext;
 	public parameter(): ParameterContext {
 		return this.getRuleContext(0, ParameterContext);
 	}

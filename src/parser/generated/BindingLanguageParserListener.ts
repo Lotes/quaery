@@ -9,8 +9,6 @@ import { StringLiteralContext } from "./BindingLanguageParser";
 import { TrueLiteralContext } from "./BindingLanguageParser";
 import { FalseLiteralContext } from "./BindingLanguageParser";
 import { NullLiteralContext } from "./BindingLanguageParser";
-import { PropertyTailContext } from "./BindingLanguageParser";
-import { FunctionCallTailContext } from "./BindingLanguageParser";
 import { TextChunkContext } from "./BindingLanguageParser";
 import { BindingChunkContext } from "./BindingLanguageParser";
 import { ChunksContext } from "./BindingLanguageParser";
@@ -107,32 +105,6 @@ export interface BindingLanguageParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitNullLiteral?: (ctx: NullLiteralContext) => void;
-
-	/**
-	 * Enter a parse tree produced by the `propertyTail`
-	 * labeled alternative in `BindingLanguageParser.tail`.
-	 * @param ctx the parse tree
-	 */
-	enterPropertyTail?: (ctx: PropertyTailContext) => void;
-	/**
-	 * Exit a parse tree produced by the `propertyTail`
-	 * labeled alternative in `BindingLanguageParser.tail`.
-	 * @param ctx the parse tree
-	 */
-	exitPropertyTail?: (ctx: PropertyTailContext) => void;
-
-	/**
-	 * Enter a parse tree produced by the `functionCallTail`
-	 * labeled alternative in `BindingLanguageParser.tail`.
-	 * @param ctx the parse tree
-	 */
-	enterFunctionCallTail?: (ctx: FunctionCallTailContext) => void;
-	/**
-	 * Exit a parse tree produced by the `functionCallTail`
-	 * labeled alternative in `BindingLanguageParser.tail`.
-	 * @param ctx the parse tree
-	 */
-	exitFunctionCallTail?: (ctx: FunctionCallTailContext) => void;
 
 	/**
 	 * Enter a parse tree produced by the `textChunk`

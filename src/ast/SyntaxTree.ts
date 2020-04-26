@@ -51,7 +51,7 @@ export interface BindingExpression {
   : PropertyExpressionPayload
   | FunctionCallExpressionPayload
   | UnitAnnotationPayload
-  | String
+  | string
   | number
   | boolean
   | null

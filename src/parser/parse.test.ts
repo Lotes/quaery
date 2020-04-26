@@ -91,17 +91,48 @@ describe("parse", () => {
       }
     }]);
   });
-  // it("should parse property binding", () => {
-  //   expect(parse("{{Image.Width}}")).toEqual([{
-  //     kind: ChunkKind.Binding,
-  //     payload: {
-  //       kind: BindingExpressionKind.PropertyAccess,
-  //       name: "Width",
-  //       operand: {
-  //         kind: BindingExpressionKind.Identifier,
-  //         payload: "Image"
-  //       }
-  //     }
-  //   }]);
-  // });
+  it("should parse property binding", () => {
+    expect(parse("{{Image.Width}}")).toEqual([{
+      kind: ChunkKind.Binding,
+      payload: {
+        kind: BindingExpressionKind.PropertyAccess,
+        payload: {
+          propertyName: "Width",
+          operand: {
+            kind: BindingExpressionKind.Identifier,
+            payload: "Image"
+          }
+        }
+      }
+    }]);
+  });
+
+  it("should parse function call binding", () => {
+    expect(parse("{{Image.MoveTo(123, 456)}}")).toEqual([{
+      kind: ChunkKind.Binding,
+      payload: {
+        kind: BindingExpressionKind.FunctionCall,
+        payload: {
+          parameters: [{
+            kind: BindingExpressionKind.Number,
+            payload: 123
+          }, {
+            kind: BindingExpressionKind.Number,
+            payload: 456
+          }],
+          operand: {
+            kind: BindingExpressionKind.PropertyAccess,
+            payload: {
+              propertyName: "MoveTo",
+              operand: {
+                kind: BindingExpressionKind.Identifier,
+                payload: "Image"
+              }
+            }
+          }
+        }
+      }
+    }]);
+  });
+
 });

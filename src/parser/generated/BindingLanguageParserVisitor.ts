@@ -9,8 +9,6 @@ import { StringLiteralContext } from "./BindingLanguageParser";
 import { TrueLiteralContext } from "./BindingLanguageParser";
 import { FalseLiteralContext } from "./BindingLanguageParser";
 import { NullLiteralContext } from "./BindingLanguageParser";
-import { PropertyTailContext } from "./BindingLanguageParser";
-import { FunctionCallTailContext } from "./BindingLanguageParser";
 import { TextChunkContext } from "./BindingLanguageParser";
 import { BindingChunkContext } from "./BindingLanguageParser";
 import { ChunksContext } from "./BindingLanguageParser";
@@ -80,22 +78,6 @@ export interface BindingLanguageParserVisitor<Result> extends ParseTreeVisitor<R
 	 * @return the visitor result
 	 */
 	visitNullLiteral?: (ctx: NullLiteralContext) => Result;
-
-	/**
-	 * Visit a parse tree produced by the `propertyTail`
-	 * labeled alternative in `BindingLanguageParser.tail`.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	visitPropertyTail?: (ctx: PropertyTailContext) => Result;
-
-	/**
-	 * Visit a parse tree produced by the `functionCallTail`
-	 * labeled alternative in `BindingLanguageParser.tail`.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	visitFunctionCallTail?: (ctx: FunctionCallTailContext) => Result;
 
 	/**
 	 * Visit a parse tree produced by the `textChunk`
