@@ -135,7 +135,6 @@ describe("parse", () => {
     }]);
   });
 
-
   it("should parse parameterless global function binding", () => {
     expect(parse("{{random()}}")).toEqual([{
       kind: ChunkKind.Binding,
@@ -151,5 +150,4 @@ describe("parse", () => {
       }
     }]);
   });
-
 });

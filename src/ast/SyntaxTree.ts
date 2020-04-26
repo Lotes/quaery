@@ -5,7 +5,7 @@ export enum ChunkKind {
 
 export interface Chunk {
   kind: ChunkKind;
-  payload: String | BindingExpression;
+  payload: string | BindingExpression;
 }
 
 export type ChunkSequence = Chunk[];
@@ -31,7 +31,7 @@ export enum Unit {
 
 export interface PropertyExpressionPayload {
   operand: BindingExpression;
-  propertyName: String;
+  propertyName: string;
 }
 
 export interface FunctionCallExpressionPayload {
