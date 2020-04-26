@@ -10,7 +10,7 @@ chunk: TEXT # textChunk | binding # bindingChunk;
 
 binding: LMUSTACHE bindingExpression RMUSTACHE;
 
-bindingExpression: expression UNIT?;
+bindingExpression: value = expression unit = UNIT?;
 
 expression:
 	name = ID tail?		# idExpression

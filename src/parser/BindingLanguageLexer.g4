@@ -1,9 +1,14 @@
 lexer grammar BindingLanguageLexer;
 
 LMUSTACHE: '{{' -> mode(WITHIN_BINDING_MODE);
-TEXT: (~'{' | '{' ~'{')+;
+TEXT: (~'{' | '{' (~'{' | EOF))+;
 
 mode WITHIN_BINDING_MODE;
+fragment PX: 'px';
+fragment PT: 'pt';
+fragment CM: 'cm';
+fragment MM: 'mm';
+UNIT: PX | PT | MM | CM | INCH;
 TRUE: 'true';
 FALSE: 'false';
 NULL: 'null';
@@ -12,11 +17,6 @@ RMUSTACHE: '}}' -> mode(DEFAULT_MODE);
 LPAREN: '(';
 RPAREN: ')';
 DOT: '.';
-UNIT: PX | PT | MM | CM | INCH;
-PX: 'px';
-PT: 'pt';
-CM: 'cm';
-MM: 'mm';
 INCH: 'inch';
 ID: [A-Z][A-Za-z0-9_]*;
 NUMBER: DIGIT+ (DOT DIGIT+)?;

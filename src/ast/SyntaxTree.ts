@@ -25,7 +25,8 @@ export enum Unit {
   Pixels,
   Points,
   Centimeter,
-  Millimeter
+  Millimeter,
+  Inch
 }
 
 export interface PropertyExpressionPayload {

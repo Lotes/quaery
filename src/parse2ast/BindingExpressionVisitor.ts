@@ -1,7 +1,8 @@
 import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguageParserVisitor";
-import { BindingExpression, BindingExpressionKind } from "../ast/SyntaxTree";
+import { BindingExpression, BindingExpressionKind, UnitAnnotationPayload, Unit } from "../ast/SyntaxTree";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
-import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext } from "../parser/generated/BindingLanguageParser";
+import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext, BindingExpressionContext } from "../parser/generated/BindingLanguageParser";
+import { BindingLanguageLexer } from "../parser/generated/BindingLanguageLexer";
 
 export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingExpression> implements BindingLanguageParserVisitor<BindingExpression> {
   visitIdExpression = (ctx: IdExpressionContext) => ({
@@ -42,7 +43,27 @@ export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingEx
 
   visitBinding = (ctx: BindingContext) => this.visit(ctx.bindingExpression());
 
-  // visitBindingExpression?: ((ctx: BindingExpressionContext) => BindingExpression) | undefined;
+  visitBindingExpression = (ctx: BindingExpressionContext) => {
+    let unit: Unit;
+    const operand = this.visit(ctx._value);
+    switch (ctx._unit?.text) {
+      case "px": unit = Unit.Pixels; break;
+      case "cm": unit = Unit.Centimeter; break;
+      case "mm": unit = Unit.Millimeter; break;
+      case "inch": unit = Unit.Inch; break;
+      case "pt": unit = Unit.Points; break;
+      default:
+        return operand;
+    }
+    return ({
+      kind: BindingExpressionKind.UnitAnnotation,
+      payload: {
+        operand,
+        unit
+      } as UnitAnnotationPayload
+    } as BindingExpression);
+  };
+
   // visitProperty?: ((ctx: PropertyContext) => BindingExpression) | undefined;
   // visitFunctionCall?: ((ctx: FunctionCallContext) => BindingExpression) | undefined;
   // visitParameters?: ((ctx: ParametersContext) => BindingExpression) | undefined;
@@ -52,8 +73,7 @@ export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingEx
   protected defaultResult(): BindingExpression {
     return {
       kind: BindingExpressionKind.String,
-      payload: "",
-      type: 0
+      payload: ""
     };
   }
 }
