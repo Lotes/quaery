@@ -15,10 +15,12 @@ export function parse(input: string): ChunkSequence {
 
   const inputStream = new ANTLRInputStream(input);
   const lexer = new BindingLanguageLexer(inputStream);
+  lexer.removeErrorListeners();
   lexer.addErrorListener(errorListener);
   const tokenStream = new CommonTokenStream(lexer);
 
   const parser = new BindingLanguageParser(tokenStream);
+  parser.removeErrorListeners();
   parser.addErrorListener(errorListener);
   const tree = parser.chunks();
 

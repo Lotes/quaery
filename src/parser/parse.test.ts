@@ -109,7 +109,7 @@ describe("parse", () => {
       payload: {
         kind: BindingExpressionKind.PropertyAccess,
         payload: {
-          propertyName: "Width",
+          name: "Width",
           operand: {
             kind: BindingExpressionKind.Identifier,
             payload: "Image"
@@ -135,7 +135,7 @@ describe("parse", () => {
           operand: {
             kind: BindingExpressionKind.PropertyAccess,
             payload: {
-              propertyName: "MoveTo",
+              name: "MoveTo",
               operand: {
                 kind: BindingExpressionKind.Identifier,
                 payload: "Image"
