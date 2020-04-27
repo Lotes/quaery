@@ -1,5 +1,6 @@
 import { BindingExpression, UnitAnnotationPayload, PropertyExpressionPayload, FunctionCallExpressionPayload, ChunkSequence, ChunkKind, BindingExpressionKind, GenericBindingExpression } from "./SyntaxTree";
 import { Chunk } from "../ast/SyntaxTree";
+import { AggregateError } from "../AggregateError";
 
 export interface SyntaxTreeFolder<TArgument, TInputBinding = BindingExpression, TOutputBinding = void> {
   visitChunk(chunk: Chunk<TInputBinding>, arg: TArgument): Chunk<TOutputBinding>;
@@ -48,7 +49,7 @@ export abstract class AbstractSyntaxTreeFolder<TArgument, TInputBinding extends 
         const propertyOut = this.visitBinding(propertyPayload.operand, arg);
         return this.visitBinding_Property({
           operand: propertyOut,
-          propertyName: propertyPayload.propertyName
+          name: propertyPayload.name
         }, arg);
       case BindingExpressionKind.FunctionCall:
         const functionCallPayload = binding.payload as FunctionCallExpressionPayload<TInputBinding>;
@@ -85,6 +86,23 @@ export function createFold<
     folder: SyntaxTreeFolder<TArgument, TInputBinding, TOutputBinding>
   ) {
   return (sequence: ChunkSequence<TInputBinding>, argument: TArgument): Chunk<TOutputBinding>[] => {
-    return sequence.map(ch => folder.visitChunk(ch, argument));
+    const errors: Error[] = [];
+    const result = sequence.map(ch => {
+      try {
+        return folder.visitChunk(ch, argument);
+      } catch (e) {
+        errors.push(e);
+        return {
+          kind: ChunkKind.Text,
+          payload: ""
+        };
+      }
+    });
+
+    if (errors.length > 0) {
+      throw new AggregateError(errors);
+    }
+
+    return result;
   }
 }

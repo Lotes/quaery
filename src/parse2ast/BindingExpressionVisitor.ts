@@ -23,7 +23,7 @@ export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingEx
           kind,
           payload: {
             operand,
-            propertyName: rhs.payload as string
+            name: rhs.payload as string
           }
         } as BindingExpression;
       } else {

@@ -31,7 +31,7 @@ export enum Unit {
 
 export interface PropertyExpressionPayload<TBinding = BindingExpression> {
   operand: TBinding;
-  propertyName: string;
+  name: string;
 }
 
 export interface FunctionCallExpressionPayload<TBinding = BindingExpression> {
