@@ -26,6 +26,18 @@ describe("parse", () => {
     }]);
   });
 
+  it("should not parse corrupted ID binding", () => {
+    expect(() => parse("{{Id")).toThrowError();
+  });
+
+  it("should not parse corrupted unit binding", () => {
+    expect(() => parse("{{px}}")).toThrowError();
+  });
+
+  it("should not parse corrupted number binding", () => {
+    expect(() => parse("{{123,456}}")).toThrowError();
+  });
+
   it("should parse NUMBER binding", () => {
     expect(parse("{{1234.5678}}")).toEqual([{
       kind: ChunkKind.Binding,

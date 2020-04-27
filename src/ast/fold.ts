@@ -27,7 +27,12 @@ export abstract class AbstractSyntaxTreeFolder<TArgument, TInputBinding extends 
       return this.visitChunk_Binding(outBinding, arg);
     }
   }
-  abstract visitChunk_Text(text: string, arg: TArgument): Chunk<TOutputBinding>;
+  visitChunk_Text(text: string, arg: TArgument): Chunk<TOutputBinding> {
+    return {
+      kind: ChunkKind.Text,
+      payload: text
+    }
+  }
 
   abstract visitChunk_Binding(binding: TOutputBinding, arg: TArgument): Chunk<TOutputBinding>;
 
@@ -62,31 +67,14 @@ export abstract class AbstractSyntaxTreeFolder<TArgument, TInputBinding extends 
         }, arg);
     }
   }
-  visitBinding_UnitAnnotation(annotation: UnitAnnotationPayload<TOutputBinding>, arg: TArgument): TOutputBinding {
-    throw new Error("Method not implemented.");
-  }
-  visitBinding_Property(property: PropertyExpressionPayload<TOutputBinding>, arg: TArgument): TOutputBinding {
-    throw new Error("Method not implemented.");
-  }
-  visitBinding_FunctionCall(functionCall: FunctionCallExpressionPayload<TOutputBinding>, arg: TArgument): TOutputBinding {
-    throw new Error("Method not implemented.");
-  }
-  visitBinding_StringLiteral(value: string, arg: TArgument): TOutputBinding {
-    throw new Error("Method not implemented.");
-  }
-  visitBinding_NumberLiteral(value: number, arg: TArgument): TOutputBinding {
-    throw new Error("Method not implemented.");
-  }
-  visitBinding_BooleanLiteral(value: boolean, arg: TArgument): TOutputBinding {
-    throw new Error("Method not implemented.");
-  }
-  visitBinding_NullLiteral(arg: TArgument): TOutputBinding {
-    throw new Error("Method not implemented.");
-  }
-  visitBinding_Identifier(identifier: string, arg: TArgument): TOutputBinding {
-    throw new Error("Method not implemented.");
-  }
-
+  abstract visitBinding_UnitAnnotation(annotation: UnitAnnotationPayload<TOutputBinding>, arg: TArgument): TOutputBinding;
+  abstract visitBinding_Property(property: PropertyExpressionPayload<TOutputBinding>, arg: TArgument): TOutputBinding;
+  abstract visitBinding_FunctionCall(functionCall: FunctionCallExpressionPayload<TOutputBinding>, arg: TArgument): TOutputBinding;
+  abstract visitBinding_StringLiteral(value: string, arg: TArgument): TOutputBinding;
+  abstract visitBinding_NumberLiteral(value: number, arg: TArgument): TOutputBinding;
+  abstract visitBinding_BooleanLiteral(value: boolean, arg: TArgument): TOutputBinding;
+  abstract visitBinding_NullLiteral(arg: TArgument): TOutputBinding;
+  abstract visitBinding_Identifier(identifier: string, arg: TArgument): TOutputBinding;
 }
 
 export function createFold<

@@ -1,49 +1,39 @@
-import { SyntaxTreeFolder } from "../ast/fold";
-import { Chunk } from "antlr4ts/tree/pattern/Chunk";
-import { BindingExpression, BindingExpressionKind, ChunkKind } from "../ast/SyntaxTree";
+import { BindingExpression, Chunk, UnitAnnotationPayload, PropertyExpressionPayload, FunctionCallExpressionPayload, GenericBindingExpression, ChunkKind, BindingExpressionKind } from "../ast/SyntaxTree";
+import { Type, TypeChecker } from "../typesystem/TypeSystem";
+import { createFold, AbstractSyntaxTreeFolder } from "../ast/fold";
 
-export enum Type {
-  String,
-}
-
-export interface TypedBindingExpression extends BindingExpression {
+export interface TypedBindingExpression extends GenericBindingExpression<TypedBindingExpression> {
   type: Type;
 }
 
-export class CoerceTypesVisitor implements SyntaxTreeFolder<void, Chunk, TypedBindingExpression> {
-  visitChunk_Text(text: string, arg: void): Chunk {
-    return {
-      kind: ChunkKind.Text,
-      payload: text,
-      type: Type.String
-    };
-  }
-  visitChunk_Binding(binding: BindingExpression, arg: void): Chunk {
+class CoercionFolder extends AbstractSyntaxTreeFolder<TypeChecker, BindingExpression, TypedBindingExpression> {
+  visitChunk_Binding(binding: TypedBindingExpression, arg: TypeChecker): Chunk<TypedBindingExpression> {
     throw new Error("Method not implemented.");
   }
-  visitBinding_UnitAnnotation(annotation: import("../ast/SyntaxTree").UnitAnnotationPayload, arg: void): TypedBindingExpression {
+  visitBinding_UnitAnnotation(annotation: UnitAnnotationPayload<TypedBindingExpression>, arg: TypeChecker): TypedBindingExpression {
     throw new Error("Method not implemented.");
   }
-  visitBinding_StringLiteral(value: string, arg: void): TypedBindingExpression {
+  visitBinding_Property(property: PropertyExpressionPayload<TypedBindingExpression>, arg: TypeChecker): TypedBindingExpression {
     throw new Error("Method not implemented.");
   }
-  visitBinding_NumberLiteral(value: number, arg: void): TypedBindingExpression {
+  visitBinding_FunctionCall(functionCall: FunctionCallExpressionPayload<TypedBindingExpression>, arg: TypeChecker): TypedBindingExpression {
     throw new Error("Method not implemented.");
   }
-  visitBinding_BooleanLiteral(value: boolean, arg: void): TypedBindingExpression {
+  visitBinding_StringLiteral(value: string, arg: TypeChecker): TypedBindingExpression {
     throw new Error("Method not implemented.");
   }
-  visitBinding_NullLiteral(arg: void): TypedBindingExpression {
+  visitBinding_NumberLiteral(value: number, arg: TypeChecker): TypedBindingExpression {
     throw new Error("Method not implemented.");
   }
-  visitBinding_Identifier(identifier: string, arg: void): TypedBindingExpression {
+  visitBinding_BooleanLiteral(value: boolean, arg: TypeChecker): TypedBindingExpression {
     throw new Error("Method not implemented.");
   }
-  visitBinding_Property(property: import("../ast/SyntaxTree").PropertyExpressionPayload, arg: void): TypedBindingExpression {
+  visitBinding_NullLiteral(arg: TypeChecker): TypedBindingExpression {
     throw new Error("Method not implemented.");
   }
-  visitBinding_FunctionCall(functionCall: import("../ast/SyntaxTree").FunctionCallExpressionPayload, arg: void): TypedBindingExpression {
+  visitBinding_Identifier(identifier: string, arg: TypeChecker): TypedBindingExpression {
     throw new Error("Method not implemented.");
   }
-
 }
+
+createFold<TypeChecker, BindingExpression, TypedBindingExpression>(new CoercionFolder())
