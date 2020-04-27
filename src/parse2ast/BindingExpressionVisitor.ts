@@ -1,5 +1,5 @@
 import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguageParserVisitor";
-import { BindingExpression, BindingExpressionKind, UnitAnnotationPayload, Unit } from "../ast/SyntaxTree";
+import { BindingExpression, BindingExpressionKind, Unit } from "../ast/SyntaxTree";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext, BindingExpressionContext } from "../parser/generated/BindingLanguageParser";
 import { TailVisitor, MemberAccessKind } from "./TailVisitor";
@@ -85,7 +85,7 @@ export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingEx
       payload: {
         operand,
         unit
-      } as UnitAnnotationPayload
+      }
     } as BindingExpression);
   };
 

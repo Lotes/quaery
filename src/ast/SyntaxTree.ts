@@ -3,12 +3,12 @@ export enum ChunkKind {
   Binding
 }
 
-export interface Chunk {
+export interface Chunk<TBinding = BindingExpression> {
   kind: ChunkKind;
-  payload: string | BindingExpression;
+  payload: string | TBinding;
 }
 
-export type ChunkSequence = Chunk[];
+export type ChunkSequence<TBinding = BindingExpression> = Chunk<TBinding>[];
 
 export enum BindingExpressionKind {
   String,
@@ -29,32 +29,33 @@ export enum Unit {
   Inch
 }
 
-export interface PropertyExpressionPayload {
-  operand: BindingExpression;
+export interface PropertyExpressionPayload<TBinding = BindingExpression> {
+  operand: TBinding;
   propertyName: string;
 }
 
-export interface FunctionCallExpressionPayload {
-  operand: BindingExpression;
-  parameters: BindingExpression[];
+export interface FunctionCallExpressionPayload<TBinding = BindingExpression> {
+  operand: TBinding;
+  parameters: TBinding[];
 }
 
-export interface UnitAnnotationPayload {
-  operand: BindingExpression;
+export interface UnitAnnotationPayload<TBinding = BindingExpression> {
+  operand: TBinding;
   unit: Unit;
 }
 
-export interface BindingExpression {
-  type?: number;
+export interface GenericBindingExpression<TSelf extends GenericBindingExpression<TSelf>> {
   kind: BindingExpressionKind;
   payload
-  : PropertyExpressionPayload
-  | FunctionCallExpressionPayload
-  | UnitAnnotationPayload
+  : PropertyExpressionPayload<TSelf>
+  | FunctionCallExpressionPayload<TSelf>
+  | UnitAnnotationPayload<TSelf>
   | string
   | number
   | boolean
   | null
   ;
 }
+
+export type BindingExpression = GenericBindingExpression<BindingExpression>;
 

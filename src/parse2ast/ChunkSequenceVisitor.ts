@@ -1,12 +1,12 @@
 import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguageParserVisitor";
-import { ChunkKind, ChunkSequence } from "../ast/SyntaxTree";
+import { ChunkKind, ChunkSequence, BindingExpression } from "../ast/SyntaxTree";
 import { TextChunkContext, BindingChunkContext, ChunksContext } from "../parser/generated/BindingLanguageParser";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { BindingExpressionVisitor } from "./BindingExpressionVisitor";
 
-export class ChunkSequenceVisitor extends AbstractParseTreeVisitor<ChunkSequence> implements BindingLanguageParserVisitor<ChunkSequence> {
+export class ChunkSequenceVisitor extends AbstractParseTreeVisitor<ChunkSequence<BindingExpression>> implements BindingLanguageParserVisitor<ChunkSequence<BindingExpression>> {
   private bindingExpressionVisitor = new BindingExpressionVisitor();
-  protected defaultResult(): ChunkSequence {
+  protected defaultResult(): ChunkSequence<BindingExpression> {
     return [];
   }
   visitChunks = (ctx: ChunksContext) => ctx.chunk().map(c => this.visit(c)).reduce((lhs, rhs) => lhs.concat(rhs), []);
