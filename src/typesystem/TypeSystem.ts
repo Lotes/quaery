@@ -26,7 +26,18 @@ export enum TypeKind {
 
 export interface Type {
   kind: TypeKind;
-  description: string | Unit | ComplexTypeScope;
+  description: string | Unit | ComplexTypeScope | MethodDescriptor;
+}
+
+export interface MethodDescriptor {
+  returnType: Type;
+  formalParameters: FormalParameter[];
+  operation(self: any, actualParameters: any[]): any;
+}
+
+export interface FormalParameter {
+  name: string;
+  type: Type;
 }
 
 export namespace Primitives {

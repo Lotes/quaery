@@ -1,5 +1,5 @@
-import { BindingExpression, Chunk, UnitAnnotationPayload, PropertyExpressionPayload, FunctionCallExpressionPayload, GenericBindingExpression, ChunkKind, BindingExpressionKind, Unit } from "../ast/SyntaxTree";
-import { Type, TypeSystem, Primitives, CoercionRule, TypeKind, ComplexTypeScope } from "../typesystem/TypeSystem";
+import { BindingExpression, Chunk, UnitAnnotationPayload, PropertyExpressionPayload, FunctionCallExpressionPayload, GenericBindingExpression, ChunkKind, BindingExpressionKind } from "../ast/SyntaxTree";
+import { Type, TypeSystem, Primitives, CoercionRule, TypeKind, ComplexTypeScope, MethodDescriptor } from "./TypeSystem";
 import { createFold, AbstractSyntaxTreeFolder } from "../ast/fold";
 
 export interface TypedBindingExpression extends GenericBindingExpression<TypedBindingExpression> {
@@ -14,49 +14,43 @@ class CoercionFolder extends AbstractSyntaxTreeFolder<TypeSystem, BindingExpress
   visitChunk_Binding(binding: TypedBindingExpression, arg: TypeSystem): Chunk<TypedBindingExpression> {
     return {
       kind: ChunkKind.Binding,
-      payload: this.coerceIfNeeded(binding, arg, Primitives.String)
+      payload: this.coerceTypeIfNeeded(binding, arg, Primitives.String)
     };
   }
 
-  private coerceIfNeeded(binding: TypedBindingExpression, arg: TypeSystem, targetType: Type): TypedBindingExpression {
-    return this.promiseThen(binding, bnd => {
-      if (bnd.semantics === targetType) {
-        return bnd;
-      } else {
-        const castOperation = arg.getCoercionRule(bnd.semantics as Type, targetType);
-        if (castOperation != null) {
+  private coerceTypeIfNeeded(binding: TypedBindingExpression, arg: TypeSystem, targetType: Type): TypedBindingExpression {
+    return this.promiseWhenResolved(binding, bnd => {
+      return this.promiseWhen(bnd, b => b.semantics === targetType, () => new Error("Cannot cast!"), bnd2 => {
+        const castOperation = arg.getCoercionRule(bnd2.semantics as Type, targetType);
+        return this.promiseWhen(bnd2, b => castOperation != null, () => new Error("No coercion rule!"), bnd3 => {
           return {
             kind: BindingExpressionKind.FunctionCall,
             payload: {
-              operand: bnd,
+              operand: bnd3,
               parameters: []
             },
             resolved: true,
             semantics: targetType,
-            operation: castOperation
+            operation: castOperation!
           };
-        } else {
-          return {
-            ...bnd,
-            resolved: false,
-            semantics: new Error("Cannot cast!") //TODO cannot cast from binding.semantics as Type to targetType
-          }
-        }
-      }
+        });
+      });
     });
   }
-
-  private promiseThen(binding: TypedBindingExpression, callback: BindingExpressionPromiseThenCallback): TypedBindingExpression {
-    if (binding.resolved) {
+  private promiseWhen(binding: TypedBindingExpression, predicate: ((binding: TypedBindingExpression) => boolean), createError: (binding: TypedBindingExpression) => Error, callback: BindingExpressionPromiseThenCallback): TypedBindingExpression {
+    if (predicate(binding)) {
       return callback(binding);
     } else {
       return {
         kind: binding.kind,
         payload: binding.payload,
         resolved: false,
-        semantics: binding.semantics
+        semantics: createError(binding)
       };
     }
+  }
+  private promiseWhenResolved(binding: TypedBindingExpression, callback: BindingExpressionPromiseThenCallback): TypedBindingExpression {
+    return this.promiseWhen(binding, b => b.resolved, b => b.semantics as Error, callback);
   }
 
   visitBinding_UnitAnnotation(annotation: UnitAnnotationPayload<TypedBindingExpression>, arg: TypeSystem): TypedBindingExpression {
@@ -64,11 +58,11 @@ class CoercionFolder extends AbstractSyntaxTreeFolder<TypeSystem, BindingExpress
       kind: TypeKind.Measurable,
       description: annotation.unit
     };
-    return this.coerceIfNeeded(annotation.operand, arg, targetType);
+    return this.coerceTypeIfNeeded(annotation.operand, arg, targetType);
   }
   visitBinding_Property(property: PropertyExpressionPayload<TypedBindingExpression>, arg: TypeSystem): TypedBindingExpression {
     const operand = property.operand;
-    return this.promiseThen(operand, binding => {
+    return this.promiseWhenResolved(operand, binding => {
       const template = {
         kind: BindingExpressionKind.PropertyAccess,
         payload: {
@@ -105,8 +99,31 @@ class CoercionFolder extends AbstractSyntaxTreeFolder<TypeSystem, BindingExpress
     });
   }
   visitBinding_FunctionCall(functionCall: FunctionCallExpressionPayload<TypedBindingExpression>, arg: TypeSystem): TypedBindingExpression {
-    throw new Error("Method not implemented.");
+    return this.promiseWhenResolved(functionCall.operand, binding => {
+      const operandType = binding.semantics as Type;
+      if (operandType.kind === TypeKind.Callable) {
+        const methodDescriptor = operandType.description as MethodDescriptor;
+        const castedParameters = functionCall.parameters.map((b, index) => this.coerceTypeIfNeeded(b, arg, methodDescriptor.formalParameters[index].type));
+        return {
+          kind: BindingExpressionKind.FunctionCall,
+          payload: {
+            operand: binding,
+            parameters: castedParameters,
+          },
+          resolved: true,
+          semantics: methodDescriptor.returnType
+        };
+      } else {
+        return {
+          kind: BindingExpressionKind.FunctionCall,
+          payload: functionCall,
+          resolved: false,
+          semantics: new Error("Operand is not a function!")
+        }
+      }
+    });
   }
+
   visitBinding_StringLiteral(value: string, arg: TypeSystem): TypedBindingExpression {
     return {
       kind: BindingExpressionKind.String,
