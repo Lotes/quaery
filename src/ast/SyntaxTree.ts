@@ -3,12 +3,17 @@ export enum ChunkKind {
   Binding
 }
 
-export interface Chunk<TBinding = BindingExpression> {
+export interface Chunk<TBindingExpression extends GenericBindingExpression<TBindingExpression>> {
   kind: ChunkKind;
-  payload: string | TBinding;
 }
 
-export type ChunkSequence<TBinding = BindingExpression> = Chunk<TBinding>[];
+export interface TextChunk<TBindingExpression extends GenericBindingExpression<TBindingExpression>> extends Chunk<TBindingExpression> {
+  text: string;
+}
+
+export interface BindingChunk<TBindingExpression extends GenericBindingExpression<TBindingExpression>> extends Chunk<TBindingExpression> {
+  binding: TBindingExpression;
+}
 
 export enum BindingExpressionKind {
   String,
@@ -29,33 +34,42 @@ export enum Unit {
   Inch
 }
 
-export interface PropertyExpressionPayload<TBinding = BindingExpression> {
-  operand: TBinding;
+export interface GenericBindingExpression<TSelf extends GenericBindingExpression<TSelf>> {
+  kind: BindingExpressionKind;
+}
+
+export interface StringLiteral<TSelf extends GenericBindingExpression<TSelf>> extends GenericBindingExpression<TSelf> {
+  value: string;
+}
+
+export interface NumberLiteral<TSelf extends GenericBindingExpression<TSelf>> extends GenericBindingExpression<TSelf> {
+  value: number;
+}
+
+export interface BooleanLiteral<TSelf extends GenericBindingExpression<TSelf>> extends GenericBindingExpression<TSelf> {
+  value: boolean;
+}
+
+export interface NullLiteral<TSelf extends GenericBindingExpression<TSelf>> extends GenericBindingExpression<TSelf> {
+}
+
+export interface Identifier<TSelf extends GenericBindingExpression<TSelf>> extends GenericBindingExpression<TSelf> {
   name: string;
 }
 
-export interface FunctionCallExpressionPayload<TBinding = BindingExpression> {
-  operand: TBinding;
-  parameters: TBinding[];
+export interface FunctionCall<TSelf extends GenericBindingExpression<TSelf>> extends GenericBindingExpression<TSelf> {
+  operand: TSelf;
+  actualParameters: TSelf[];
 }
 
-export interface UnitAnnotationPayload<TBinding = BindingExpression> {
-  operand: TBinding;
+export interface PropertyAccess<TSelf extends GenericBindingExpression<TSelf>> extends GenericBindingExpression<TSelf> {
+  operand: TSelf;
+  name: string;
+}
+
+export interface UnitAnnotation<TSelf extends GenericBindingExpression<TSelf>> extends GenericBindingExpression<TSelf> {
+  operand: TSelf;
   unit: Unit;
 }
 
-export interface GenericBindingExpression<TSelf extends GenericBindingExpression<TSelf>> {
-  kind: BindingExpressionKind;
-  payload
-  : PropertyExpressionPayload<TSelf>
-  | FunctionCallExpressionPayload<TSelf>
-  | UnitAnnotationPayload<TSelf>
-  | string
-  | number
-  | boolean
-  | null
-  ;
-}
-
 export type BindingExpression = GenericBindingExpression<BindingExpression>;
-

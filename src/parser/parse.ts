@@ -1,11 +1,11 @@
 import { ANTLRInputStream, CommonTokenStream, ANTLRErrorListener, Token, RecognitionException } from "antlr4ts";
-import { ChunkSequence } from "../ast/SyntaxTree";
 import { BindingLanguageLexer } from "./generated/BindingLanguageLexer";
 import { BindingLanguageParser } from "./generated/BindingLanguageParser";
 import { ChunkSequenceVisitor } from "../parse2ast/ChunkSequenceVisitor";
 import { AggregateError } from "../AggregateError";
+import { BindingExpression, Chunk } from "../ast/SyntaxTree";
 
-export function parse(input: string): ChunkSequence {
+export function parse(input: string): Chunk<BindingExpression>[] {
   const errors: RecognitionException[] = [];
   const errorListener: ANTLRErrorListener<Token> = {
     syntaxError(_recognizer, _offendingSymbol, _line, _positionInLine, _message, e) {
@@ -29,6 +29,6 @@ export function parse(input: string): ChunkSequence {
     throw new AggregateError(errors);
   }
 
-  const visitor = new ChunkSequenceVisitor();
+  const visitor = new ChunkSequenceVisitor<BindingExpression>();
   return visitor.visit(tree);
 }

@@ -1,70 +1,43 @@
 import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguageParserVisitor";
-import { BindingExpression, BindingExpressionKind, Unit } from "../ast/SyntaxTree";
+import { PropertyAccess, NumberLiteral, BooleanLiteral, BindingExpression, BindingExpressionKind, Unit, StringLiteral, UnitAnnotation, NullLiteral, FunctionCall } from "../ast/SyntaxTree";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext, BindingExpressionContext } from "../parser/generated/BindingLanguageParser";
 import { TailVisitor, MemberAccessKind } from "./TailVisitor";
+import { newIdentifier, newNumber, newNull, newString, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/SyntaxTreeBuilder";
 
 export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingExpression> implements BindingLanguageParserVisitor<BindingExpression> {
   private tailVisitor = new TailVisitor(this);
 
   visitIdExpression = (ctx: IdExpressionContext) => {
     const tail = ctx._next != null ? this.tailVisitor.visit(ctx._next) : [];
-    const leaf: BindingExpression = {
-      kind: BindingExpressionKind.Identifier,
-      payload: ctx._name.text!
-    };
-    return tail.reduce((lhs, rhs) => {
+    const leaf = newIdentifier(ctx._name.text!);
+    return tail.reduce<BindingExpression>((lhs, rhs) => {
       const kind = rhs.kind === MemberAccessKind.Property
         ? BindingExpressionKind.PropertyAccess
         : BindingExpressionKind.FunctionCall;
       const operand = lhs;
       if (kind === BindingExpressionKind.PropertyAccess) {
-        return {
-          kind,
-          payload: {
-            operand,
-            name: rhs.payload as string
-          }
-        } as BindingExpression;
+        return newPropertyAccess(operand, rhs.payload as string);
       } else {
-        return {
-          kind,
-          payload: {
-            operand,
-            parameters: rhs.payload as BindingExpression[]
-          }
-        } as BindingExpression;
+        return newFunctionCall(operand, rhs.payload as BindingExpression[]);
       }
     }, leaf);
   };
 
-  visitNumberLiteral = (ctx: NumberLiteralContext) => ({
-    kind: BindingExpressionKind.Number,
-    payload: parseFloat(ctx._value.text!)
-  } as BindingExpression);
+  visitNumberLiteral = (ctx: NumberLiteralContext) => newNumber(parseFloat(ctx._value.text!));
 
-  visitStringLiteral = (ctx: StringLiteralContext) => ({
-    kind: BindingExpressionKind.String,
-    payload: ctx._value.text!
+  visitStringLiteral = (ctx: StringLiteralContext) => newString(
+    ctx._value.text!
       .substr(1, ctx._value.text!.length - 2)
       .replace("\\\\", "\\")
       .replace("\\\"", "\"")
-  } as BindingExpression);
+  );
 
-  visitTrueLiteral = () => ({
-    kind: BindingExpressionKind.Boolean,
-    payload: true
-  } as BindingExpression);
+  visitTrueLiteral = () => newBoolean(true);
 
-  visitFalseLiteral = () => ({
-    kind: BindingExpressionKind.Boolean,
-    payload: false
-  } as BindingExpression);
+  visitFalseLiteral = () => newBoolean(false);
 
-  visitNullLiteral = () => ({
-    kind: BindingExpressionKind.Null,
-    payload: null
-  } as BindingExpression);
+  visitNullLiteral = () => newNull();
 
   visitBinding = (ctx: BindingContext) => this.visit(ctx.bindingExpression());
 
@@ -80,25 +53,15 @@ export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingEx
       default:
         return operand;
     }
-    return ({
-      kind: BindingExpressionKind.UnitAnnotation,
-      payload: {
-        operand,
-        unit
-      }
-    } as BindingExpression);
+    return newUnitAnnotation(operand, unit);
   };
-
-  // visitProperty?: ((ctx: PropertyContext) => BindingExpression) | undefined;
-  // visitFunctionCall?: ((ctx: FunctionCallContext) => BindingExpression) | undefined;
-  // visitParameters?: ((ctx: ParametersContext) => BindingExpression) | undefined;
 
   visitParameter = (ctx: ParameterContext) => this.visit(ctx.bindingExpression());
 
   protected defaultResult(): BindingExpression {
     return {
       kind: BindingExpressionKind.String,
-      payload: ""
-    };
+      value: ""
+    } as StringLiteral<BindingExpression>;
   }
 }
