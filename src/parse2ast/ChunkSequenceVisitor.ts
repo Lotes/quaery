@@ -3,7 +3,7 @@ import { ChunkKind, GenericBindingExpression, Chunk } from "../ast/SyntaxTree";
 import { TextChunkContext, BindingChunkContext, ChunksContext } from "../parser/generated/BindingLanguageParser";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { BindingExpressionVisitor } from "./BindingExpressionVisitor";
-import { newTextChunk, newBindingChunk } from "../ast/SyntaxTreeBuilder";
+import { newTextChunk, newBindingChunk } from "../ast/factory";
 
 export class ChunkSequenceVisitor<T extends GenericBindingExpression<T>> extends AbstractParseTreeVisitor<Chunk<T>[]> implements BindingLanguageParserVisitor<Chunk<T>[]> {
   private bindingExpressionVisitor = new BindingExpressionVisitor();

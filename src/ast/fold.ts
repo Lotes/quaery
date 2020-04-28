@@ -41,8 +41,6 @@ export abstract class AbstractSyntaxTreeFolder<
     };
   }
 
-  abstract visitChunk_Binding(chunk: BindingChunk<TOutputBinding>, arg: TArgument): Chunk<TOutputBinding>;
-
   visitBinding(binding: TInputBinding, arg: TArgument): TOutputBinding {
     switch (binding.kind) {
       case BindingExpressionKind.Boolean: return this.visitBinding_BooleanLiteral(binding as unknown as BooleanLiteral<TInputBinding>, arg);
@@ -78,6 +76,7 @@ export abstract class AbstractSyntaxTreeFolder<
       }
     }
   }
+  abstract visitChunk_Binding(chunk: BindingChunk<TOutputBinding>, arg: TArgument): BindingChunk<TOutputBinding>;
   abstract visitBinding_UnitAnnotation(annotation: UnitAnnotation<TOutputBinding>, arg: TArgument): TOutputBinding;
   abstract visitBinding_Property(property: PropertyAccess<TOutputBinding>, arg: TArgument): TOutputBinding;
   abstract visitBinding_FunctionCall(functionCall: FunctionCall<TOutputBinding>, arg: TArgument): TOutputBinding;

@@ -1,6 +1,6 @@
-import { BindingExpression, Chunk, UnitAnnotationPayload, PropertyExpressionPayload, FunctionCallExpressionPayload, GenericBindingExpression, ChunkKind, BindingExpressionKind } from "../ast/SyntaxTree";
 import { Type, TypeSystem, Primitives, CoercionRule, TypeKind, ComplexTypeScope, MethodDescriptor } from "./TypeSystem";
 import { createFold, AbstractSyntaxTreeFolder } from "../ast/fold";
+import { BindingExpression, GenericBindingExpression, Chunk, ChunkKind, BindingChunk, BindingExpressionKind, UnitAnnotation, PropertyAccess, Identifier, BooleanLiteral, NumberLiteral, FunctionCall, StringLiteral } from "../ast/SyntaxTree";
 
 export interface TypedBindingExpression extends GenericBindingExpression<TypedBindingExpression> {
   resolved: boolean;
@@ -11,10 +11,10 @@ export interface TypedBindingExpression extends GenericBindingExpression<TypedBi
 type BindingExpressionPromiseThenCallback = (binding: TypedBindingExpression) => TypedBindingExpression;
 
 class CoercionFolder extends AbstractSyntaxTreeFolder<TypeSystem, BindingExpression, TypedBindingExpression> {
-  visitChunk_Binding(binding: TypedBindingExpression, arg: TypeSystem): Chunk<TypedBindingExpression> {
+  visitChunk_Binding(chunk: BindingChunk<TypedBindingExpression>, arg: TypeSystem): BindingChunk<TypedBindingExpression> {
     return {
-      kind: ChunkKind.Binding,
-      payload: this.coerceTypeIfNeeded(binding, arg, Primitives.String)
+      ...chunk,
+      binding: this.coerceTypeIfNeeded(chunk.binding, arg, Primitives.String)
     };
   }
 
@@ -42,8 +42,7 @@ class CoercionFolder extends AbstractSyntaxTreeFolder<TypeSystem, BindingExpress
       return callback(binding);
     } else {
       return {
-        kind: binding.kind,
-        payload: binding.payload,
+        ...binding,
         resolved: false,
         semantics: createError(binding)
       };
@@ -53,14 +52,15 @@ class CoercionFolder extends AbstractSyntaxTreeFolder<TypeSystem, BindingExpress
     return this.promiseWhen(binding, b => b.resolved, b => b.semantics as Error, callback);
   }
 
-  visitBinding_UnitAnnotation(annotation: UnitAnnotationPayload<TypedBindingExpression>, arg: TypeSystem): TypedBindingExpression {
+  visitBinding_UnitAnnotation(annotation: UnitAnnotation<TypedBindingExpression>, arg: TypeSystem): TypedBindingExpression {
     let targetType: Type = {
       kind: TypeKind.Measurable,
       description: annotation.unit
     };
     return this.coerceTypeIfNeeded(annotation.operand, arg, targetType);
   }
-  visitBinding_Property(property: PropertyExpressionPayload<TypedBindingExpression>, arg: TypeSystem): TypedBindingExpression {
+
+  visitBinding_Property(property: PropertyAccess<TypedBindingExpression>, arg: TypeSystem): TypedBindingExpression {
     const operand = property.operand;
     return this.promiseWhenResolved(operand, binding => {
       const template = {
@@ -98,25 +98,22 @@ class CoercionFolder extends AbstractSyntaxTreeFolder<TypeSystem, BindingExpress
       }
     });
   }
-  visitBinding_FunctionCall(functionCall: FunctionCallExpressionPayload<TypedBindingExpression>, arg: TypeSystem): TypedBindingExpression {
+  visitBinding_FunctionCall(functionCall: FunctionCall<TypedBindingExpression>, arg: TypeSystem): TypedBindingExpression {
     return this.promiseWhenResolved(functionCall.operand, binding => {
       const operandType = binding.semantics as Type;
       if (operandType.kind === TypeKind.Callable) {
         const methodDescriptor = operandType.description as MethodDescriptor;
-        const castedParameters = functionCall.parameters.map((b, index) => this.coerceTypeIfNeeded(b, arg, methodDescriptor.formalParameters[index].type));
+        const castedParameters = functionCall.actualParameters.map((b, index) => this.coerceTypeIfNeeded(b, arg, methodDescriptor.formalParameters[index].type));
         return {
-          kind: BindingExpressionKind.FunctionCall,
-          payload: {
-            operand: binding,
-            parameters: castedParameters,
-          },
+          ...functionCall,
+          operand: binding,
+          actualParameters: castedParameters,
           resolved: true,
           semantics: methodDescriptor.returnType
         };
       } else {
         return {
-          kind: BindingExpressionKind.FunctionCall,
-          payload: functionCall,
+          ...functionCall,
           resolved: false,
           semantics: new Error("Operand is not a function!")
         }
@@ -124,26 +121,23 @@ class CoercionFolder extends AbstractSyntaxTreeFolder<TypeSystem, BindingExpress
     });
   }
 
-  visitBinding_StringLiteral(value: string, arg: TypeSystem): TypedBindingExpression {
+  visitBinding_StringLiteral(binding: StringLiteral<BindingExpression>, arg: TypeSystem): TypedBindingExpression {
     return {
-      kind: BindingExpressionKind.String,
-      payload: value,
+      ...binding,
       resolved: true,
       semantics: Primitives.String,
     };
   }
-  visitBinding_NumberLiteral(value: number, arg: TypeSystem): TypedBindingExpression {
+  visitBinding_NumberLiteral(binding: NumberLiteral<BindingExpression>, arg: TypeSystem): TypedBindingExpression {
     return {
-      kind: BindingExpressionKind.Number,
-      payload: value,
+      ...binding,
       resolved: true,
       semantics: Primitives.Number,
     };
   }
-  visitBinding_BooleanLiteral(value: boolean, arg: TypeSystem): TypedBindingExpression {
+  visitBinding_BooleanLiteral(binding: BooleanLiteral<BindingExpression>, arg: TypeSystem): TypedBindingExpression {
     return {
-      kind: BindingExpressionKind.Boolean,
-      payload: value,
+      ...binding,
       resolved: true,
       semantics: Primitives.Boolean,
     };
@@ -151,24 +145,21 @@ class CoercionFolder extends AbstractSyntaxTreeFolder<TypeSystem, BindingExpress
   visitBinding_NullLiteral(arg: TypeSystem): TypedBindingExpression {
     return {
       kind: BindingExpressionKind.Null,
-      payload: null,
       resolved: true,
       semantics: null,
     };
   }
-  visitBinding_Identifier(identifier: string, arg: TypeSystem): TypedBindingExpression {
-    const global = arg.globals.lookup(identifier);
+  visitBinding_Identifier(identifier: Identifier<BindingExpression>, arg: TypeSystem): TypedBindingExpression {
+    const global = arg.globals.lookup(identifier.name);
     if (global != null) {
       return {
-        kind: BindingExpressionKind.Identifier,
-        payload: identifier,
+        ...identifier,
         resolved: true,
         semantics: global.type,
       };
     } else {
       return {
-        kind: BindingExpressionKind.Identifier,
-        payload: identifier,
+        ...identifier,
         resolved: false,
         semantics: new Error(`No global '${identifier}' found.`),
       };

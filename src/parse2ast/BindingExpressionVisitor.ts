@@ -1,9 +1,9 @@
 import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguageParserVisitor";
-import { PropertyAccess, NumberLiteral, BooleanLiteral, BindingExpression, BindingExpressionKind, Unit, StringLiteral, UnitAnnotation, NullLiteral, FunctionCall } from "../ast/SyntaxTree";
+import { BindingExpression, BindingExpressionKind, Unit, StringLiteral } from "../ast/SyntaxTree";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext, BindingExpressionContext } from "../parser/generated/BindingLanguageParser";
 import { TailVisitor, MemberAccessKind } from "./TailVisitor";
-import { newIdentifier, newNumber, newNull, newString, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/SyntaxTreeBuilder";
+import { newIdentifier, newNumber, newNull, newString, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/factory";
 
 export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingExpression> implements BindingLanguageParserVisitor<BindingExpression> {
   private tailVisitor = new TailVisitor(this);

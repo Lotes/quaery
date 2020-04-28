@@ -1,6 +1,6 @@
 import { parse } from "./parse";
 import { BindingExpressionKind, Unit } from "../ast/SyntaxTree";
-import { newString, newTextChunk, newBindingChunk, newIdentifier, newNumber, newNull, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/SyntaxTreeBuilder";
+import { newString, newTextChunk, newBindingChunk, newIdentifier, newNumber, newNull, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/factory";
 
 describe("parse", () => {
   it("should parse text chunk", () => {
