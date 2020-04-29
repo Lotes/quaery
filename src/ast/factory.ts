@@ -1,71 +1,81 @@
-import { TextChunk, BindingExpression, ChunkKind, BindingChunk, Identifier, BindingExpressionKind, NumberLiteral, StringLiteral, NullLiteral, BooleanLiteral, Unit, UnitAnnotation, PropertyAccess, FunctionCall } from "./SyntaxTree";
+import { TextChunk, ChunkKind, BindingChunk, BindingExpressionKind, Unit, ExtendedFunctionCall, ExtendedPropertyAccess, ExtendedUnitAnnotation, ExtendedBindingExpression, ExtendedIdentifier, ExtendedNumberLiteral, ExtendedStringLiteral, ExtendedNullLiteral, ExtendedBooleanLiteral } from "./SyntaxTree";
 
-export function newTextChunk(text: string): TextChunk<BindingExpression> {
+export function newTextChunk<TExtension>(text: string, extension: TExtension): TextChunk {
   return {
+    ...extension,
     kind: ChunkKind.Text,
     text
   };
 }
 
-export function newBindingChunk(binding: BindingExpression): BindingChunk<BindingExpression> {
+export function newBindingChunk<TExtension>(binding: ExtendedBindingExpression<TExtension>, extension: TExtension): BindingChunk<TExtension> {
   return {
+    ...extension,
     kind: ChunkKind.Binding,
     binding
   };
 }
 
-export function newIdentifier(name: string): Identifier<BindingExpression> {
+export function newIdentifier<TExtension>(name: string, extension: TExtension): ExtendedIdentifier<TExtension> {
   return {
+    ...extension,
     kind: BindingExpressionKind.Identifier,
     name
   };
 }
 
-export function newNumber(value: number): NumberLiteral<BindingExpression> {
+export function newNumber<TExtension>(value: number, extension: TExtension): ExtendedNumberLiteral<TExtension> {
   return {
+    ...extension,
     kind: BindingExpressionKind.Number,
     value
   };
 }
 
-export function newString(value: string): StringLiteral<BindingExpression> {
+export function newString<TExtension>(value: string, extension: TExtension): ExtendedStringLiteral<TExtension> {
   return {
+    ...extension,
     kind: BindingExpressionKind.String,
     value
   };
 }
 
-export function newNull(): NullLiteral<BindingExpression> {
+export function newNull<TExtension>(extension: TExtension): ExtendedNullLiteral<TExtension> {
   return {
+    ...extension,
     kind: BindingExpressionKind.Null
   };
 }
 
-export function newBoolean(value: boolean): BooleanLiteral<BindingExpression> {
+export function newBoolean<TExtension>(value: boolean, extension: TExtension): ExtendedBooleanLiteral<TExtension> {
   return {
+    ...extension,
     kind: BindingExpressionKind.Boolean,
     value
   }
 }
 
-export function newUnitAnnotation(operand: BindingExpression, unit: Unit): UnitAnnotation<BindingExpression> {
+export function newUnitAnnotation<TExtension>(operand: ExtendedBindingExpression<TExtension>, unit: Unit, extension: TExtension): ExtendedUnitAnnotation<TExtension> {
   return {
+    ...extension,
     kind: BindingExpressionKind.UnitAnnotation,
     operand,
     unit
   }
 }
 
-export function newPropertyAccess(operand: BindingExpression, name: string): PropertyAccess<BindingExpression> {
+export function newPropertyAccess<TExtension>(operand: ExtendedBindingExpression<TExtension>, name: string, extension: TExtension): ExtendedPropertyAccess<TExtension> {
   return {
+    ...extension,
     kind: BindingExpressionKind.PropertyAccess,
     name,
     operand
   };
 }
 
-export function newFunctionCall(operand: BindingExpression, actualParameters: BindingExpression[]): FunctionCall<BindingExpression> {
+export function newFunctionCall<TExtension>(operand: ExtendedBindingExpression<TExtension>, actualParameters: ExtendedBindingExpression<TExtension>[], extension: TExtension): ExtendedFunctionCall<TExtension> {
   return {
+    ...extension,
     kind: BindingExpressionKind.FunctionCall,
     actualParameters,
     operand

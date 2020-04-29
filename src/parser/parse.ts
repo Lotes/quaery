@@ -5,7 +5,7 @@ import { ChunkSequenceVisitor } from "../parse2ast/ChunkSequenceVisitor";
 import { AggregateError } from "../AggregateError";
 import { BindingExpression, Chunk } from "../ast/SyntaxTree";
 
-export function parse(input: string): Chunk<BindingExpression>[] {
+export function parse(input: string): Chunk<{}>[] {
   const errors: RecognitionException[] = [];
   const errorListener: ANTLRErrorListener<Token> = {
     syntaxError(_recognizer, _offendingSymbol, _line, _positionInLine, _message, e) {
@@ -29,6 +29,6 @@ export function parse(input: string): Chunk<BindingExpression>[] {
     throw new AggregateError(errors);
   }
 
-  const visitor = new ChunkSequenceVisitor<BindingExpression>();
+  const visitor = new ChunkSequenceVisitor();
   return visitor.visit(tree);
 }

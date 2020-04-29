@@ -1,5 +1,5 @@
 import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguageParserVisitor";
-import { BindingExpression, BindingExpressionKind, Unit, StringLiteral } from "../ast/SyntaxTree";
+import { BindingExpression, BindingExpressionKind, Unit } from "../ast/SyntaxTree";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext, BindingExpressionContext } from "../parser/generated/BindingLanguageParser";
 import { TailVisitor, MemberAccessKind } from "./TailVisitor";
@@ -10,34 +10,34 @@ export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingEx
 
   visitIdExpression = (ctx: IdExpressionContext) => {
     const tail = ctx._next != null ? this.tailVisitor.visit(ctx._next) : [];
-    const leaf = newIdentifier(ctx._name.text!);
+    const leaf = newIdentifier(ctx._name.text!, {});
     return tail.reduce<BindingExpression>((lhs, rhs) => {
       const kind = rhs.kind === MemberAccessKind.Property
         ? BindingExpressionKind.PropertyAccess
         : BindingExpressionKind.FunctionCall;
       const operand = lhs;
       if (kind === BindingExpressionKind.PropertyAccess) {
-        return newPropertyAccess(operand, rhs.payload as string);
+        return newPropertyAccess(operand, rhs.payload as string, {});
       } else {
-        return newFunctionCall(operand, rhs.payload as BindingExpression[]);
+        return newFunctionCall(operand, rhs.payload as BindingExpression[], {});
       }
     }, leaf);
   };
 
-  visitNumberLiteral = (ctx: NumberLiteralContext) => newNumber(parseFloat(ctx._value.text!));
+  visitNumberLiteral = (ctx: NumberLiteralContext) => newNumber(parseFloat(ctx._value.text!), {});
 
   visitStringLiteral = (ctx: StringLiteralContext) => newString(
     ctx._value.text!
       .substr(1, ctx._value.text!.length - 2)
       .replace("\\\\", "\\")
-      .replace("\\\"", "\"")
+      .replace("\\\"", "\""), {}
   );
 
-  visitTrueLiteral = () => newBoolean(true);
+  visitTrueLiteral = () => newBoolean(true, {});
 
-  visitFalseLiteral = () => newBoolean(false);
+  visitFalseLiteral = () => newBoolean(false, {});
 
-  visitNullLiteral = () => newNull();
+  visitNullLiteral = () => newNull({});
 
   visitBinding = (ctx: BindingContext) => this.visit(ctx.bindingExpression());
 
@@ -53,15 +53,12 @@ export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingEx
       default:
         return operand;
     }
-    return newUnitAnnotation(operand, unit);
+    return newUnitAnnotation(operand, unit, {});
   };
 
   visitParameter = (ctx: ParameterContext) => this.visit(ctx.bindingExpression());
 
   protected defaultResult(): BindingExpression {
-    return {
-      kind: BindingExpressionKind.String,
-      value: ""
-    } as StringLiteral<BindingExpression>;
+    return newString("", {});
   }
 }
