@@ -1,4 +1,4 @@
-import { ExtendedBindingExpression, Chunk, ChunkKind, BindingExpressionKind, TextChunk, BindingChunk, UnitAnnotation, PropertyAccess, FunctionCall, StringLiteral, NumberLiteral, BooleanLiteral, Identifier } from "../ast/SyntaxTree";
+import { ExtendedBindingExpression, Chunk, ChunkKind, BindingExpressionKind, TextChunk, BindingChunk, ExtendedUnitAnnotation, ExtendedPropertyAccess, ExtendedNullLiteral, ExtendedFunctionCall, ExtendedStringLiteral, ExtendedNumberLiteral, ExtendedBooleanLiteral, ExtendedIdentifier, BaseUnitAnnotation, BasePropertyAccess, BaseFunctionCall } from "../ast/SyntaxTree";
 import { AggregateError } from "../AggregateError";
 import { newTextChunk } from "./factory";
 
@@ -8,15 +8,15 @@ export interface SyntaxTreeFolder<TArgument, TInputExtension, TOutputExtension> 
   visitChunk_Binding(chunk: BindingChunk<TOutputExtension>, arg: TArgument): Chunk<TOutputExtension>;
   //node expressions
   visitBinding(binding: ExtendedBindingExpression<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  visitBinding_UnitAnnotation(binding: UnitAnnotation<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  visitBinding_Property(binding: PropertyAccess<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  visitBinding_FunctionCall(binding: FunctionCall<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  visitBinding_UnitAnnotation(binding: BaseUnitAnnotation<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  visitBinding_Property(binding: BasePropertyAccess<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  visitBinding_FunctionCall(binding: BaseFunctionCall<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
   //leaf expressions
-  visitBinding_StringLiteral(binding: StringLiteral, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  visitBinding_NumberLiteral(binding: NumberLiteral, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  visitBinding_BooleanLiteral(binding: BooleanLiteral, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  visitBinding_NullLiteral(arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  visitBinding_Identifier(binding: Identifier, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  visitBinding_StringLiteral(binding: ExtendedStringLiteral<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  visitBinding_NumberLiteral(binding: ExtendedNumberLiteral<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  visitBinding_BooleanLiteral(binding: ExtendedBooleanLiteral<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  visitBinding_NullLiteral(binding: ExtendedNullLiteral<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  visitBinding_Identifier(binding: ExtendedIdentifier<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
 }
 
 export abstract class AbstractSyntaxTreeFolder<
@@ -41,51 +41,18 @@ export abstract class AbstractSyntaxTreeFolder<
       ...chunk
     };
   }
-
-  visitBinding(binding: ExtendedBindingExpression<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension> {
-    switch (binding.kind) {
-      case BindingExpressionKind.Boolean: return this.visitBinding_BooleanLiteral(binding as unknown as BooleanLiteral, arg);
-      case BindingExpressionKind.Number: return this.visitBinding_NumberLiteral(binding as unknown as NumberLiteral, arg);
-      case BindingExpressionKind.String: return this.visitBinding_StringLiteral(binding as unknown as StringLiteral, arg);
-      case BindingExpressionKind.Null: return this.visitBinding_NullLiteral(arg);
-      case BindingExpressionKind.Identifier: return this.visitBinding_Identifier(binding as unknown as Identifier, arg);
-      case BindingExpressionKind.PropertyAccess: {
-        const propertyIn = binding as unknown as PropertyAccess<TInputExtension>;
-        const propertyOperandOut = this.visitBinding(propertyIn.operand, arg);
-        return this.visitBinding_Property({
-          ...propertyIn,
-          operand: propertyOperandOut
-        }, arg);
-      }
-      case BindingExpressionKind.FunctionCall: {
-        const functionCallIn = binding as unknown as FunctionCall<TInputExtension>;
-        const operandOut = this.visitBinding(functionCallIn.operand, arg);
-        const parametersOut = functionCallIn.actualParameters.map(p => this.visitBinding(p, arg));
-        return this.visitBinding_FunctionCall({
-          ...functionCallIn,
-          operand: operandOut,
-          actualParameters: parametersOut
-        }, arg);
-      }
-      case BindingExpressionKind.UnitAnnotation: {
-        const unitAnnotationIn = binding as unknown as UnitAnnotation<TInputExtension>;
-        const operandOut = this.visitBinding(unitAnnotationIn.operand, arg);
-        return this.visitBinding_UnitAnnotation({
-          ...unitAnnotationIn,
-          operand: operandOut
-        }, arg);
-      }
-    }
-  }
+  abstract visitBinding(binding: ExtendedBindingExpression<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
   abstract visitChunk_Binding(chunk: BindingChunk<TOutputExtension>, arg: TArgument): BindingChunk<TOutputExtension>;
-  abstract visitBinding_UnitAnnotation(annotation: UnitAnnotation<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  abstract visitBinding_Property(property: PropertyAccess<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  abstract visitBinding_FunctionCall(functionCall: FunctionCall<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  abstract visitBinding_StringLiteral(binding: StringLiteral, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  abstract visitBinding_NumberLiteral(binding: NumberLiteral, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  abstract visitBinding_BooleanLiteral(binding: BooleanLiteral, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  abstract visitBinding_NullLiteral(arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
-  abstract visitBinding_Identifier(binding: Identifier, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+
+  abstract visitBinding_UnitAnnotation(annotation: BaseUnitAnnotation<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  abstract visitBinding_Property(property: BasePropertyAccess<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  abstract visitBinding_FunctionCall(functionCall: BaseFunctionCall<TOutputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+
+  abstract visitBinding_StringLiteral(binding: ExtendedStringLiteral<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  abstract visitBinding_NumberLiteral(binding: ExtendedNumberLiteral<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  abstract visitBinding_BooleanLiteral(binding: ExtendedBooleanLiteral<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  abstract visitBinding_NullLiteral(binding: ExtendedNullLiteral<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
+  abstract visitBinding_Identifier(binding: ExtendedIdentifier<TInputExtension>, arg: TArgument): ExtendedBindingExpression<TOutputExtension>;
 }
 
 export function createFold<

@@ -45,52 +45,52 @@ export type ExtendedBindingExpression<TExtension>
   | ExtendedUnitAnnotation<TExtension>
   ;
 
-export type ExtendedStringLiteral<TExtension> = StringLiteral & TExtension;
-export type ExtendedNumberLiteral<TExtension> = NumberLiteral & TExtension;
-export type ExtendedBooleanLiteral<TExtension> = BooleanLiteral & TExtension;
-export type ExtendedNullLiteral<TExtension> = NullLiteral & TExtension;
-export type ExtendedIdentifier<TExtension> = Identifier & TExtension;
-export type ExtendedPropertyAccess<TExtension> = PropertyAccess<TExtension> & TExtension;
-export type ExtendedFunctionCall<TExtension> = FunctionCall<TExtension> & TExtension;
-export type ExtendedUnitAnnotation<TExtension> = UnitAnnotation<TExtension> & TExtension;
+export type ExtendedStringLiteral<TExtension> = BaseStringLiteral & TExtension;
+export type ExtendedNumberLiteral<TExtension> = BaseNumberLiteral & TExtension;
+export type ExtendedBooleanLiteral<TExtension> = BaseBooleanLiteral & TExtension;
+export type ExtendedNullLiteral<TExtension> = BaseNullLiteral & TExtension;
+export type ExtendedIdentifier<TExtension> = BaseIdentifier & TExtension;
+export type ExtendedPropertyAccess<TExtension> = BasePropertyAccess<TExtension> & TExtension;
+export type ExtendedFunctionCall<TExtension> = BaseFunctionCall<TExtension> & TExtension;
+export type ExtendedUnitAnnotation<TExtension> = BaseUnitAnnotation<TExtension> & TExtension;
 
-export interface StringLiteral {
+export interface BaseStringLiteral {
   kind: BindingExpressionKind.String;
   value: string;
 }
 
-export interface NumberLiteral {
+export interface BaseNumberLiteral {
   kind: BindingExpressionKind.Number;
   value: number;
 }
 
-export interface BooleanLiteral {
+export interface BaseBooleanLiteral {
   kind: BindingExpressionKind.Boolean;
   value: boolean;
 }
 
-export interface NullLiteral {
+export interface BaseNullLiteral {
   kind: BindingExpressionKind.Null;
 }
 
-export interface Identifier {
+export interface BaseIdentifier {
   kind: BindingExpressionKind.Identifier;
   name: string;
 }
 
-export interface FunctionCall<TExtension> {
+export interface BaseFunctionCall<TExtension> {
   kind: BindingExpressionKind.FunctionCall;
   operand: ExtendedBindingExpression<TExtension>;
   actualParameters: ExtendedBindingExpression<TExtension>[];
 }
 
-export interface PropertyAccess<TExtension> {
+export interface BasePropertyAccess<TExtension> {
   kind: BindingExpressionKind.PropertyAccess;
   operand: ExtendedBindingExpression<TExtension>;
   name: string;
 }
 
-export interface UnitAnnotation<TExtension> {
+export interface BaseUnitAnnotation<TExtension> {
   kind: BindingExpressionKind.UnitAnnotation;
   operand: ExtendedBindingExpression<TExtension>;
   unit: Unit;
