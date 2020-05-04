@@ -11,6 +11,6 @@ export class ChunkSequenceVisitor extends AbstractParseTreeVisitor<Chunk<{}>[]> 
     return [];
   }
   visitChunks = (ctx: ChunksContext) => ctx.chunk().map(c => this.visit(c)).reduce((lhs, rhs) => lhs.concat(rhs), []);
-  visitTextChunk = (ctx: TextChunkContext) => [newTextChunk(ctx.text, {})];
-  visitBindingChunk = (ctx: BindingChunkContext) => [newBindingChunk(this.bindingExpressionVisitor.visit(ctx.binding()), {})];
+  visitTextChunk = (ctx: TextChunkContext) => [newTextChunk(ctx.text)];
+  visitBindingChunk = (ctx: BindingChunkContext) => [newBindingChunk(this.bindingExpressionVisitor.visit(ctx.binding()))];
 }

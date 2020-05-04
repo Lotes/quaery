@@ -70,7 +70,7 @@ export function createFold<
         return folder.visitChunk(ch, argument);
       } catch (e) {
         errors.push(e);
-        return newTextChunk<{}>("", {});
+        return newTextChunk("");
       }
     });
 

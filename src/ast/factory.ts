@@ -1,16 +1,14 @@
 import { TextChunk, ChunkKind, BindingChunk, BindingExpressionKind, Unit, ExtendedFunctionCall, ExtendedPropertyAccess, ExtendedUnitAnnotation, ExtendedBindingExpression, ExtendedIdentifier, ExtendedNumberLiteral, ExtendedStringLiteral, ExtendedNullLiteral, ExtendedBooleanLiteral } from "./SyntaxTree";
 
-export function newTextChunk<TExtension>(text: string, extension: TExtension): TextChunk {
+export function newTextChunk(text: string): TextChunk {
   return {
-    ...extension,
     kind: ChunkKind.Text,
     text
   };
 }
 
-export function newBindingChunk<TExtension>(binding: ExtendedBindingExpression<TExtension>, extension: TExtension): BindingChunk<TExtension> {
+export function newBindingChunk<TExtension>(binding: ExtendedBindingExpression<TExtension>): BindingChunk<TExtension> {
   return {
-    ...extension,
     kind: ChunkKind.Binding,
     binding
   };
