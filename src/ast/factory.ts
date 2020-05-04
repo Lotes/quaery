@@ -1,5 +1,7 @@
 import { TextChunk, ChunkKind, BindingChunk, Unit, ExtendedFunctionCall, ExtendedPropertyAccess, ExtendedUnitAnnotation, ExtendedBindingExpression, ExtendedIdentifier, ExtendedNumberLiteral, ExtendedStringLiteral, ExtendedNullLiteral, ExtendedBooleanLiteral } from "./SyntaxTree";
 import { ExpressionKind } from "./ExpressionKind";
+import { Token } from "antlr4ts";
+import { Range } from "./RangeExtensions";
 
 export function newTextChunk(text: string): TextChunk {
   return {
@@ -78,5 +80,13 @@ export function newFunctionCall<TExtension>(operand: ExtendedBindingExpression<T
     kind: ExpressionKind.FunctionCall,
     actualParameters,
     operand
+  };
+}
+
+export function newRangeFromTokens(first: Token, last?: Token): Range {
+  last = last || first;
+  return {
+    startIndex: first.startIndex,
+    stopIndex: last.stopIndex
   };
 }

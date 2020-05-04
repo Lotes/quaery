@@ -1,6 +1,33 @@
-import { parse } from "./parse";
-import { Unit } from "../ast/SyntaxTree";
+import { parse as originalParse } from "./parse";
+import { Unit, Chunk, BindingExpression, ChunkKind } from "../ast/SyntaxTree";
 import { newString, newTextChunk, newBindingChunk, newIdentifier, newNumber, newNull, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/factory";
+import { isObject, isArray } from "util";
+
+function hideLocations(expression: any): BindingExpression {
+  const result: any = { ...expression };
+  for (let key of Object.keys(result)) {
+    if (key.includes("location")) {
+      delete result[key];
+    } else if (isObject(result[key]) && result[key].kind != null) {
+      result[key] = hideLocations(result[key]);
+    } else if (isArray(result[key])) {
+      result[key] = result[key].map((item: any) => hideLocations(item));
+    }
+  }
+  return result as unknown as BindingExpression;
+}
+
+function parse(text: string): Chunk<{}>[] {
+  return originalParse(text).map(ch => {
+    if (ch.kind === ChunkKind.Binding) {
+      return {
+        ...ch,
+        binding: hideLocations(ch.binding)
+      }
+    }
+    return ch;
+  });
+}
 
 describe("parse", () => {
   it("should parse text chunk", () => {

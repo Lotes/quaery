@@ -284,7 +284,7 @@ export class BindingLanguageParser extends Parser {
 				this.enterOuterAlt(_localctx, 4);
 				{
 				this.state = 46;
-				this.match(BindingLanguageParser.TRUE);
+				(_localctx as TrueLiteralContext)._value = this.match(BindingLanguageParser.TRUE);
 				}
 				break;
 			case BindingLanguageParser.FALSE:
@@ -292,7 +292,7 @@ export class BindingLanguageParser extends Parser {
 				this.enterOuterAlt(_localctx, 5);
 				{
 				this.state = 47;
-				this.match(BindingLanguageParser.FALSE);
+				(_localctx as FalseLiteralContext)._value = this.match(BindingLanguageParser.FALSE);
 				}
 				break;
 			case BindingLanguageParser.NULL:
@@ -300,7 +300,7 @@ export class BindingLanguageParser extends Parser {
 				this.enterOuterAlt(_localctx, 6);
 				{
 				this.state = 48;
-				this.match(BindingLanguageParser.NULL);
+				(_localctx as NullLiteralContext)._value = this.match(BindingLanguageParser.NULL);
 				}
 				break;
 			default:
@@ -370,7 +370,7 @@ export class BindingLanguageParser extends Parser {
 			this.enterOuterAlt(_localctx, 1);
 			{
 			this.state = 55;
-			this.match(BindingLanguageParser.DOT);
+			_localctx._dot = this.match(BindingLanguageParser.DOT);
 			this.state = 56;
 			_localctx._name = this.match(BindingLanguageParser.ID);
 			this.state = 58;
@@ -408,7 +408,7 @@ export class BindingLanguageParser extends Parser {
 			this.enterOuterAlt(_localctx, 1);
 			{
 			this.state = 60;
-			this.match(BindingLanguageParser.LPAREN);
+			_localctx._lparen = this.match(BindingLanguageParser.LPAREN);
 			this.state = 62;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
@@ -420,7 +420,7 @@ export class BindingLanguageParser extends Parser {
 			}
 
 			this.state = 64;
-			this.match(BindingLanguageParser.RPAREN);
+			_localctx._rparen = this.match(BindingLanguageParser.RPAREN);
 			this.state = 66;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
@@ -830,6 +830,7 @@ export class StringLiteralContext extends ExpressionContext {
 	}
 }
 export class TrueLiteralContext extends ExpressionContext {
+	public _value: Token;
 	public TRUE(): TerminalNode { return this.getToken(BindingLanguageParser.TRUE, 0); }
 	constructor(ctx: ExpressionContext) {
 		super(ctx.parent, ctx.invokingState);
@@ -857,6 +858,7 @@ export class TrueLiteralContext extends ExpressionContext {
 	}
 }
 export class FalseLiteralContext extends ExpressionContext {
+	public _value: Token;
 	public FALSE(): TerminalNode { return this.getToken(BindingLanguageParser.FALSE, 0); }
 	constructor(ctx: ExpressionContext) {
 		super(ctx.parent, ctx.invokingState);
@@ -884,6 +886,7 @@ export class FalseLiteralContext extends ExpressionContext {
 	}
 }
 export class NullLiteralContext extends ExpressionContext {
+	public _value: Token;
 	public NULL(): TerminalNode { return this.getToken(BindingLanguageParser.NULL, 0); }
 	constructor(ctx: ExpressionContext) {
 		super(ctx.parent, ctx.invokingState);
@@ -948,6 +951,7 @@ export class TailContext extends ParserRuleContext {
 
 
 export class PropertyContext extends ParserRuleContext {
+	public _dot: Token;
 	public _name: Token;
 	public _next: TailContext;
 	public DOT(): TerminalNode { return this.getToken(BindingLanguageParser.DOT, 0); }
@@ -984,7 +988,9 @@ export class PropertyContext extends ParserRuleContext {
 
 
 export class FunctionCallContext extends ParserRuleContext {
+	public _lparen: Token;
 	public _list: ParametersContext;
+	public _rparen: Token;
 	public _next: TailContext;
 	public LPAREN(): TerminalNode { return this.getToken(BindingLanguageParser.LPAREN, 0); }
 	public RPAREN(): TerminalNode { return this.getToken(BindingLanguageParser.RPAREN, 0); }

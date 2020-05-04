@@ -1,17 +1,11 @@
 import { ExpressionKind } from "./ExpressionKind";
 
-export interface Position {
-  offset: number;
-  line: number;
-  columnInLine: number;
-}
-
 export interface Range {
-  start: Position;
-  end: Position;
+  startIndex: number;
+  stopIndex: number;
 }
 
-export type LocatableBindingExpression
+export type LocatableExtension
   = LocatableStringLiteral
   | LocatableNumberLiteral
   | LocatableBooleanLiteral
@@ -22,47 +16,47 @@ export type LocatableBindingExpression
   | LocatableUnitAnnotation
   ;
 
-export interface LocatableExpression {
+export interface LocatableExtensionBase {
   kind: ExpressionKind;
   locationSelf: Range;
 }
 
-export interface LocatableStringLiteral extends LocatableExpression {
+export interface LocatableStringLiteral extends LocatableExtensionBase {
   kind: ExpressionKind.String;
 }
 
-export interface LocatableNumberLiteral extends LocatableExpression {
+export interface LocatableNumberLiteral extends LocatableExtensionBase {
   kind: ExpressionKind.Number;
 }
 
-export interface LocatableBooleanLiteral extends LocatableExpression {
+export interface LocatableBooleanLiteral extends LocatableExtensionBase {
   kind: ExpressionKind.Boolean;
 }
 
-export interface LocatableNullLiteral extends LocatableExpression {
+export interface LocatableNullLiteral extends LocatableExtensionBase {
   kind: ExpressionKind.Null;
 }
 
-export interface LocatableIdentifier extends LocatableExpression {
+export interface LocatableIdentifier extends LocatableExtensionBase {
   kind: ExpressionKind.Identifier;
 }
 
-export interface LocatablePropertyAccess extends LocatableExpression {
+export interface LocatablePropertyAccess extends LocatableExtensionBase {
   kind: ExpressionKind.PropertyAccess;
   locationDot: Range;
   locationId: Range;
-  locationValue: Range;
+  locationValue?: Range;
 }
 
-export interface LocatableFunctionCall extends LocatableExpression {
+export interface LocatableFunctionCall extends LocatableExtensionBase {
   kind: ExpressionKind.FunctionCall;
   locationLeftParenthesis: Range;
   locationRightParenthesis: Range;
   locationActualParameters: Range[];
-  locationValue: Range;
+  locationValue?: Range;
 }
 
-export interface LocatableUnitAnnotation extends LocatableExpression {
+export interface LocatableUnitAnnotation extends LocatableExtensionBase {
   kind: ExpressionKind.UnitAnnotation;
   locationUnit: Range;
   locationValue: Range;

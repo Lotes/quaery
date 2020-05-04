@@ -1,44 +1,70 @@
 import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguageParserVisitor";
-import { BindingExpression, Unit } from "../ast/SyntaxTree";
+import { Unit, ExtendedBindingExpression } from "../ast/SyntaxTree";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
-import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext, BindingExpressionContext } from "../parser/generated/BindingLanguageParser";
+import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext, BindingExpressionContext, TrueLiteralContext, FalseLiteralContext, NullLiteralContext } from "../parser/generated/BindingLanguageParser";
 import { TailVisitor, MemberAccessKind } from "./TailVisitor";
-import { newIdentifier, newNumber, newNull, newString, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/factory";
+import { newIdentifier, newNumber, newNull, newString, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall, newRangeFromTokens } from "../ast/factory";
 import { ExpressionKind } from "../ast/ExpressionKind";
+import { LocatableExtension } from "../ast/RangeExtensions";
 
-export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingExpression> implements BindingLanguageParserVisitor<BindingExpression> {
+export type LocatableExpression = ExtendedBindingExpression<LocatableExtension>;
+
+export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<LocatableExpression> implements BindingLanguageParserVisitor<LocatableExpression> {
   private tailVisitor = new TailVisitor(this);
 
   visitIdExpression = (ctx: IdExpressionContext) => {
     const tail = ctx._next != null ? this.tailVisitor.visit(ctx._next) : [];
-    const leaf = newIdentifier(ctx._name.text!, {});
-    return tail.reduce<BindingExpression>((lhs, rhs) => {
+    const leaf = newIdentifier<LocatableExtension>(ctx._name.text!, {
+      kind: ExpressionKind.Identifier,
+      locationSelf: newRangeFromTokens(ctx._name)
+    });
+    return tail.reduce<LocatableExpression>((lhs, rhs) => {
       const kind = rhs.kind === MemberAccessKind.Property
         ? ExpressionKind.PropertyAccess
         : ExpressionKind.FunctionCall;
       const operand = lhs;
       if (kind === ExpressionKind.PropertyAccess) {
-        return newPropertyAccess(operand, rhs.payload as string, {});
+        return newPropertyAccess<LocatableExtension>(operand, rhs.payload as string, {
+          ...rhs.locations,
+          locationValue: operand.locationSelf
+        });
       } else {
-        return newFunctionCall(operand, rhs.payload as BindingExpression[], {});
+        return newFunctionCall<LocatableExtension>(operand, rhs.payload as LocatableExpression[], {
+          ...rhs.locations,
+          locationValue: operand.locationSelf
+        });
       }
     }, leaf);
   };
 
-  visitNumberLiteral = (ctx: NumberLiteralContext) => newNumber(parseFloat(ctx._value.text!), {});
+  visitNumberLiteral = (ctx: NumberLiteralContext) => newNumber<LocatableExtension>(parseFloat(ctx._value.text!), {
+    kind: ExpressionKind.Number,
+    locationSelf: newRangeFromTokens(ctx._value)
+  });
 
-  visitStringLiteral = (ctx: StringLiteralContext) => newString(
+  visitStringLiteral = (ctx: StringLiteralContext) => newString<LocatableExtension>(
     ctx._value.text!
       .substr(1, ctx._value.text!.length - 2)
       .replace("\\\\", "\\")
-      .replace("\\\"", "\""), {}
-  );
+      .replace("\\\"", "\""), {
+    kind: ExpressionKind.String,
+    locationSelf: newRangeFromTokens(ctx._value)
+  });
 
-  visitTrueLiteral = () => newBoolean(true, {});
+  visitTrueLiteral = (ctx: TrueLiteralContext) => newBoolean<LocatableExtension>(true, {
+    kind: ExpressionKind.Boolean,
+    locationSelf: newRangeFromTokens(ctx._value)
+  });
 
-  visitFalseLiteral = () => newBoolean(false, {});
+  visitFalseLiteral = (ctx: FalseLiteralContext) => newBoolean<LocatableExtension>(false, {
+    kind: ExpressionKind.Boolean,
+    locationSelf: newRangeFromTokens(ctx._value)
+  });
 
-  visitNullLiteral = () => newNull({});
+  visitNullLiteral = (ctx: NullLiteralContext) => newNull<LocatableExtension>({
+    kind: ExpressionKind.Boolean,
+    locationSelf: newRangeFromTokens(ctx._value)
+  });
 
   visitBinding = (ctx: BindingContext) => this.visit(ctx.bindingExpression());
 
@@ -54,12 +80,23 @@ export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingEx
       default:
         return operand;
     }
-    return newUnitAnnotation(operand, unit, {});
+    return newUnitAnnotation(operand, unit, {
+      kind: ExpressionKind.UnitAnnotation,
+      locationSelf: newRangeFromTokens(ctx._start, ctx._stop),
+      locationUnit: newRangeFromTokens(ctx._unit),
+      locationValue: operand.locationSelf
+    });
   };
 
   visitParameter = (ctx: ParameterContext) => this.visit(ctx.bindingExpression());
 
-  protected defaultResult(): BindingExpression {
-    return newString("", {});
+  protected defaultResult(): LocatableExpression {
+    return newString<LocatableExtension>("", {
+      kind: ExpressionKind.String,
+      locationSelf: {
+        startIndex: -1,
+        stopIndex: -1
+      }
+    });
   }
 }
