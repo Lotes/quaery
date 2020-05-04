@@ -1,9 +1,10 @@
 import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguageParserVisitor";
-import { BindingExpression, BindingExpressionKind, Unit } from "../ast/SyntaxTree";
+import { BindingExpression, Unit } from "../ast/SyntaxTree";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext, BindingExpressionContext } from "../parser/generated/BindingLanguageParser";
 import { TailVisitor, MemberAccessKind } from "./TailVisitor";
 import { newIdentifier, newNumber, newNull, newString, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/factory";
+import { ExpressionKind } from "../ast/ExpressionKind";
 
 export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingExpression> implements BindingLanguageParserVisitor<BindingExpression> {
   private tailVisitor = new TailVisitor(this);
@@ -13,10 +14,10 @@ export class BindingExpressionVisitor extends AbstractParseTreeVisitor<BindingEx
     const leaf = newIdentifier(ctx._name.text!, {});
     return tail.reduce<BindingExpression>((lhs, rhs) => {
       const kind = rhs.kind === MemberAccessKind.Property
-        ? BindingExpressionKind.PropertyAccess
-        : BindingExpressionKind.FunctionCall;
+        ? ExpressionKind.PropertyAccess
+        : ExpressionKind.FunctionCall;
       const operand = lhs;
-      if (kind === BindingExpressionKind.PropertyAccess) {
+      if (kind === ExpressionKind.PropertyAccess) {
         return newPropertyAccess(operand, rhs.payload as string, {});
       } else {
         return newFunctionCall(operand, rhs.payload as BindingExpression[], {});

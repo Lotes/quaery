@@ -3,7 +3,7 @@ import { BindingLanguageLexer } from "./generated/BindingLanguageLexer";
 import { BindingLanguageParser } from "./generated/BindingLanguageParser";
 import { ChunkSequenceVisitor } from "../parse2ast/ChunkSequenceVisitor";
 import { AggregateError } from "../AggregateError";
-import { BindingExpression, Chunk } from "../ast/SyntaxTree";
+import { Chunk } from "../ast/SyntaxTree";
 
 export function parse(input: string): Chunk<{}>[] {
   const errors: RecognitionException[] = [];

@@ -1,4 +1,5 @@
-import { TextChunk, ChunkKind, BindingChunk, BindingExpressionKind, Unit, ExtendedFunctionCall, ExtendedPropertyAccess, ExtendedUnitAnnotation, ExtendedBindingExpression, ExtendedIdentifier, ExtendedNumberLiteral, ExtendedStringLiteral, ExtendedNullLiteral, ExtendedBooleanLiteral } from "./SyntaxTree";
+import { TextChunk, ChunkKind, BindingChunk, Unit, ExtendedFunctionCall, ExtendedPropertyAccess, ExtendedUnitAnnotation, ExtendedBindingExpression, ExtendedIdentifier, ExtendedNumberLiteral, ExtendedStringLiteral, ExtendedNullLiteral, ExtendedBooleanLiteral } from "./SyntaxTree";
+import { ExpressionKind } from "./ExpressionKind";
 
 export function newTextChunk(text: string): TextChunk {
   return {
@@ -17,7 +18,7 @@ export function newBindingChunk<TExtension>(binding: ExtendedBindingExpression<T
 export function newIdentifier<TExtension>(name: string, extension: TExtension): ExtendedIdentifier<TExtension> {
   return {
     ...extension,
-    kind: BindingExpressionKind.Identifier,
+    kind: ExpressionKind.Identifier,
     name
   };
 }
@@ -25,7 +26,7 @@ export function newIdentifier<TExtension>(name: string, extension: TExtension): 
 export function newNumber<TExtension>(value: number, extension: TExtension): ExtendedNumberLiteral<TExtension> {
   return {
     ...extension,
-    kind: BindingExpressionKind.Number,
+    kind: ExpressionKind.Number,
     value
   };
 }
@@ -33,7 +34,7 @@ export function newNumber<TExtension>(value: number, extension: TExtension): Ext
 export function newString<TExtension>(value: string, extension: TExtension): ExtendedStringLiteral<TExtension> {
   return {
     ...extension,
-    kind: BindingExpressionKind.String,
+    kind: ExpressionKind.String,
     value
   };
 }
@@ -41,14 +42,14 @@ export function newString<TExtension>(value: string, extension: TExtension): Ext
 export function newNull<TExtension>(extension: TExtension): ExtendedNullLiteral<TExtension> {
   return {
     ...extension,
-    kind: BindingExpressionKind.Null
+    kind: ExpressionKind.Null
   };
 }
 
 export function newBoolean<TExtension>(value: boolean, extension: TExtension): ExtendedBooleanLiteral<TExtension> {
   return {
     ...extension,
-    kind: BindingExpressionKind.Boolean,
+    kind: ExpressionKind.Boolean,
     value
   }
 }
@@ -56,7 +57,7 @@ export function newBoolean<TExtension>(value: boolean, extension: TExtension): E
 export function newUnitAnnotation<TExtension>(operand: ExtendedBindingExpression<TExtension>, unit: Unit, extension: TExtension): ExtendedUnitAnnotation<TExtension> {
   return {
     ...extension,
-    kind: BindingExpressionKind.UnitAnnotation,
+    kind: ExpressionKind.UnitAnnotation,
     operand,
     unit
   }
@@ -65,7 +66,7 @@ export function newUnitAnnotation<TExtension>(operand: ExtendedBindingExpression
 export function newPropertyAccess<TExtension>(operand: ExtendedBindingExpression<TExtension>, name: string, extension: TExtension): ExtendedPropertyAccess<TExtension> {
   return {
     ...extension,
-    kind: BindingExpressionKind.PropertyAccess,
+    kind: ExpressionKind.PropertyAccess,
     name,
     operand
   };
@@ -74,7 +75,7 @@ export function newPropertyAccess<TExtension>(operand: ExtendedBindingExpression
 export function newFunctionCall<TExtension>(operand: ExtendedBindingExpression<TExtension>, actualParameters: ExtendedBindingExpression<TExtension>[], extension: TExtension): ExtendedFunctionCall<TExtension> {
   return {
     ...extension,
-    kind: BindingExpressionKind.FunctionCall,
+    kind: ExpressionKind.FunctionCall,
     actualParameters,
     operand
   };
