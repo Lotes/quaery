@@ -16,15 +16,16 @@ expression:
 	name = ID next = tail?	# idExpression
 	| value = NUMBER		# numberLiteral
 	| value = STRING		# stringLiteral
-	| TRUE					# trueLiteral
-	| FALSE					# falseLiteral
-	| NULL					# nullLiteral;
+	| value = TRUE			# trueLiteral
+	| value = FALSE			# falseLiteral
+	| value = NULL			# nullLiteral;
 
 tail: property | functionCall;
 
-property: DOT name = ID next = tail?;
+property: dot = DOT name = ID next = tail?;
 
-functionCall: LPAREN list = parameters? RPAREN next = tail?;
+functionCall:
+	lparen = LPAREN list = parameters? rparen = RPAREN next = tail?;
 
 parameters: lhs = parameter (COMMA rhs = parameters)?;
 

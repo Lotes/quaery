@@ -3,9 +3,10 @@ import { BindingLanguageLexer } from "./generated/BindingLanguageLexer";
 import { BindingLanguageParser } from "./generated/BindingLanguageParser";
 import { ChunkSequenceVisitor } from "../parse2ast/ChunkSequenceVisitor";
 import { AggregateError } from "../AggregateError";
-import { BindingExpression, Chunk } from "../ast/SyntaxTree";
+import { Chunk } from "../ast/SyntaxTree";
+import { LocatableExtension } from "../ast/RangeExtensions";
 
-export function parse(input: string): Chunk<{}>[] {
+export function parse(input: string): Chunk<LocatableExtension>[] {
   const errors: RecognitionException[] = [];
   const errorListener: ANTLRErrorListener<Token> = {
     syntaxError(_recognizer, _offendingSymbol, _line, _positionInLine, _message, e) {

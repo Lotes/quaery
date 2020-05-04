@@ -1,3 +1,5 @@
+import { ExpressionKind } from "./ExpressionKind";
+
 export enum ChunkKind {
   Text,
   Binding
@@ -13,17 +15,6 @@ export interface TextChunk {
 export interface BindingChunk<TExtension> {
   kind: ChunkKind.Binding;
   binding: ExtendedBindingExpression<TExtension>;
-}
-
-export enum BindingExpressionKind {
-  String,
-  Number,
-  Boolean,
-  Null,
-  Identifier,
-  PropertyAccess,
-  FunctionCall,
-  UnitAnnotation
 }
 
 export enum Unit {
@@ -55,43 +46,43 @@ export type ExtendedFunctionCall<TExtension> = BaseFunctionCall<TExtension> & TE
 export type ExtendedUnitAnnotation<TExtension> = BaseUnitAnnotation<TExtension> & TExtension;
 
 export interface BaseStringLiteral {
-  kind: BindingExpressionKind.String;
+  kind: ExpressionKind.String;
   value: string;
 }
 
 export interface BaseNumberLiteral {
-  kind: BindingExpressionKind.Number;
+  kind: ExpressionKind.Number;
   value: number;
 }
 
 export interface BaseBooleanLiteral {
-  kind: BindingExpressionKind.Boolean;
+  kind: ExpressionKind.Boolean;
   value: boolean;
 }
 
 export interface BaseNullLiteral {
-  kind: BindingExpressionKind.Null;
+  kind: ExpressionKind.Null;
 }
 
 export interface BaseIdentifier {
-  kind: BindingExpressionKind.Identifier;
+  kind: ExpressionKind.Identifier;
   name: string;
 }
 
 export interface BaseFunctionCall<TExtension> {
-  kind: BindingExpressionKind.FunctionCall;
+  kind: ExpressionKind.FunctionCall;
   operand: ExtendedBindingExpression<TExtension>;
   actualParameters: ExtendedBindingExpression<TExtension>[];
 }
 
 export interface BasePropertyAccess<TExtension> {
-  kind: BindingExpressionKind.PropertyAccess;
+  kind: ExpressionKind.PropertyAccess;
   operand: ExtendedBindingExpression<TExtension>;
   name: string;
 }
 
 export interface BaseUnitAnnotation<TExtension> {
-  kind: BindingExpressionKind.UnitAnnotation;
+  kind: ExpressionKind.UnitAnnotation;
   operand: ExtendedBindingExpression<TExtension>;
   unit: Unit;
 }
