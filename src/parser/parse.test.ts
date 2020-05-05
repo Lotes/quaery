@@ -117,7 +117,6 @@ describe("parse", () => {
     )]);
   });
 
-
   it("should parse parameterless global function binding", () => {
     expect(parse("{{random()}}")).toEqual([newBindingChunk(
       newFunctionCall(

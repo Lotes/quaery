@@ -14,7 +14,9 @@ export function parse(input: string): Chunk<LocatableExtension>[] {
     syntaxError(_recognizer, _offendingSymbol, _line, _positionInLine, _message, e) {
       let error: Error;
       let match;
-      if ((match = /missing (.+) at (.+)/i.exec(_message)) != null) {
+      if (e instanceof SyntaxError) {
+        error = e;
+      } else if ((match = /missing (.+) at (.+)/i.exec(_message)) != null) {
         // eslint-disable-next-line no-template-curly-in-string
         error = new SyntaxError("ErrorMessage_MissingTokenAtToken", "Missing ${tokenName} at ${position}.", {
           tokenName: match[1],
@@ -46,8 +48,7 @@ export function parse(input: string): Chunk<LocatableExtension>[] {
           stopIndex: startIndex + 1
         });
       } else {
-        console.log(_message, e);
-        error = new Error(_message);
+        throw new Error("UNIMPLEMENTED ERROR: " + _message);
       }
       errors.push(error);
     }
