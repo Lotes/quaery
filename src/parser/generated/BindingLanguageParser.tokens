@@ -13,6 +13,7 @@ ID=12
 NUMBER=13
 COMMA=14
 WS=15
+UNKNOWN=16
 '{{'=1
 'true'=4
 'false'=5
