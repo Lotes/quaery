@@ -21,10 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install
+        run: yarn
+
       - name: Build
         run: yarn build
 
       - name: Test
-        run: |
-          yarn
-          yarn test
+        run: yarn test
