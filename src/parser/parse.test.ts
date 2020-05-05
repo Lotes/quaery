@@ -45,15 +45,23 @@ describe("parse", () => {
   });
 
   it("should not parse corrupted ID binding", () => {
-    expect(() => parse("{{Id")).toThrowError();
+    expect(() => parse("{{Id")).toThrowError("Missing");
+  });
+
+  it("should not parse extraeous characters", () => {
+    expect(() => parse("{{Id&}}")).toThrowError("Extraneous input");
+  });
+
+  it("should not parse mismatched characters", () => {
+    expect(() => parse("{{Id+Id}}")).toThrowError("Mismatched input");
   });
 
   it("should not parse corrupted unit binding", () => {
-    expect(() => parse("{{px}}")).toThrowError();
+    expect(() => parse("{{px}}")).toThrowError("px");
   });
 
   it("should not parse corrupted number binding", () => {
-    expect(() => parse("{{123,456}}")).toThrowError();
+    expect(() => parse("{{123,456}}")).toThrowError(",");
   });
 
   it("should parse NUMBER binding", () => {
@@ -108,7 +116,6 @@ describe("parse", () => {
         , {})
     )]);
   });
-
 
   it("should parse parameterless global function binding", () => {
     expect(parse("{{random()}}")).toEqual([newBindingChunk(

@@ -24,3 +24,5 @@ NUMBER: DIGIT+ (DOT DIGIT+)?;
 COMMA: ',';
 
 WS: [ \t\r\n]+ -> skip;
+
+UNKNOWN: .;

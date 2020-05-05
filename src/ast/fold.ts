@@ -1,5 +1,5 @@
 import { ExtendedBindingExpression, Chunk, ChunkKind, TextChunk, BindingChunk, ExtendedNullLiteral, ExtendedStringLiteral, ExtendedNumberLiteral, ExtendedBooleanLiteral, ExtendedIdentifier, BaseUnitAnnotation, BasePropertyAccess, BaseFunctionCall } from "../ast/SyntaxTree";
-import { AggregateError } from "../AggregateError";
+import { AggregateError } from "../errors/AggregateError";
 import { newTextChunk } from "./factory";
 
 export interface SyntaxTreeFolder<TArgument, TInputExtension, TOutputExtension> {

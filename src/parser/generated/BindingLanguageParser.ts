@@ -43,6 +43,7 @@ export class BindingLanguageParser extends Parser {
 	public static readonly NUMBER = 13;
 	public static readonly COMMA = 14;
 	public static readonly WS = 15;
+	public static readonly UNKNOWN = 16;
 	public static readonly RULE_chunks = 0;
 	public static readonly RULE_chunk = 1;
 	public static readonly RULE_binding = 2;
@@ -65,7 +66,8 @@ export class BindingLanguageParser extends Parser {
 	];
 	private static readonly _SYMBOLIC_NAMES: Array<string | undefined> = [
 		undefined, "LMUSTACHE", "TEXT", "UNIT", "TRUE", "FALSE", "NULL", "STRING", 
-		"RMUSTACHE", "LPAREN", "RPAREN", "DOT", "ID", "NUMBER", "COMMA", "WS",
+		"RMUSTACHE", "LPAREN", "RPAREN", "DOT", "ID", "NUMBER", "COMMA", "WS", 
+		"UNKNOWN",
 	];
 	public static readonly VOCABULARY: Vocabulary = new VocabularyImpl(BindingLanguageParser._LITERAL_NAMES, BindingLanguageParser._SYMBOLIC_NAMES, []);
 
@@ -512,7 +514,7 @@ export class BindingLanguageParser extends Parser {
 	}
 
 	public static readonly _serializedATN: string =
-		"\x03\uC91D\uCABA\u058D\uAFBA\u4F53\u0607\uEA8B\uC241\x03\x11N\x04\x02" +
+		"\x03\uC91D\uCABA\u058D\uAFBA\u4F53\u0607\uEA8B\uC241\x03\x12N\x04\x02" +
 		"\t\x02\x04\x03\t\x03\x04\x04\t\x04\x04\x05\t\x05\x04\x06\t\x06\x04\x07" +
 		"\t\x07\x04\b\t\b\x04\t\t\t\x04\n\t\n\x04\v\t\v\x03\x02\x07\x02\x18\n\x02" +
 		"\f\x02\x0E\x02\x1B\v\x02\x03\x02\x03\x02\x03\x03\x03\x03\x05\x03!\n\x03" +
