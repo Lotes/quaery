@@ -1,5 +1,9 @@
 lexer grammar BindingLanguageLexer;
 
+channels {
+	IGNORE
+}
+
 LMUSTACHE: '{{' -> mode(WITHIN_BINDING_MODE);
 TEXT: (~'{' | '{' (~'{' | EOF))+;
 
@@ -23,6 +27,6 @@ ID: [A-Za-z_][A-Za-z0-9_]*;
 NUMBER: DIGIT+ (DOT DIGIT+)?;
 COMMA: ',';
 
-WS: [ \t\r\n]+ -> skip;
+WS: [ \t\r\n]+ -> channel(IGNORE);
 
 UNKNOWN: .;

@@ -9,7 +9,9 @@ function App() {
       <h1>Binding editor</h1>
       <p>
         <Editor text={text} textChanged={setText} />
-        {text}
+        {text.split("\n").map(x => (<>
+          {x}<br />
+        </>))}
       </p>
     </div>
   );
