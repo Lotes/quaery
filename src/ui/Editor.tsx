@@ -1,4 +1,4 @@
-import React, { Component, createRef } from 'react';
+import React, { createRef } from 'react';
 import './Editor.css';
 import { BindingLanguageLexer } from '../parser/generated/BindingLanguageLexer';
 import { ANTLRInputStream } from 'antlr4ts';
@@ -20,8 +20,6 @@ export interface EditorProps {
   text: string;
   textChanged: (newText: string) => void;
 }
-
-const regexLineBreak = /(\r\n?|\n)/g;
 
 class Editor extends React.Component<EditorProps> {
   private dom: React.RefObject<HTMLDivElement>;

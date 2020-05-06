@@ -10,7 +10,9 @@ on:
   pull_request:
     branches: [master]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+env:
+  CI: false
+
 jobs:
   # This workflow contains a single job called "build"
   build:
