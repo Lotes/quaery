@@ -6,9 +6,6 @@ import { ATNDeserializer } from "antlr4ts/atn/ATNDeserializer";
 import { CharStream } from "antlr4ts/CharStream";
 import { Lexer } from "antlr4ts/Lexer";
 import { LexerATNSimulator } from "antlr4ts/atn/LexerATNSimulator";
-import { NotNull } from "antlr4ts/Decorators";
-import { Override } from "antlr4ts/Decorators";
-import { RuleContext } from "antlr4ts/RuleContext";
 import { Vocabulary } from "antlr4ts/Vocabulary";
 import { VocabularyImpl } from "antlr4ts/VocabularyImpl";
 
@@ -45,18 +42,18 @@ export class BindingLanguageLexer extends Lexer {
 	];
 
 	public static readonly ruleNames: string[] = [
-		"LMUSTACHE", "TEXT", "PX", "PT", "CM", "MM", "INCH", "DIGIT", "UNIT", 
-		"TRUE", "FALSE", "NULL", "STRING", "RMUSTACHE", "LPAREN", "RPAREN", "DOT", 
+		"LMUSTACHE", "TEXT", "PX", "PT", "CM", "MM", "INCH", "DIGIT", "UNIT",
+		"TRUE", "FALSE", "NULL", "STRING", "RMUSTACHE", "LPAREN", "RPAREN", "DOT",
 		"ID", "NUMBER", "COMMA", "WS", "UNKNOWN",
 	];
 
 	private static readonly _LITERAL_NAMES: Array<string | undefined> = [
-		undefined, "'{{'", undefined, undefined, "'true'", "'false'", "'null'", 
+		undefined, "'{{'", undefined, undefined, "'true'", "'false'", "'null'",
 		undefined, "'}}'", "'('", "')'", "'.'", undefined, undefined, "','",
 	];
 	private static readonly _SYMBOLIC_NAMES: Array<string | undefined> = [
-		undefined, "LMUSTACHE", "TEXT", "UNIT", "TRUE", "FALSE", "NULL", "STRING", 
-		"RMUSTACHE", "LPAREN", "RPAREN", "DOT", "ID", "NUMBER", "COMMA", "WS", 
+		undefined, "LMUSTACHE", "TEXT", "UNIT", "TRUE", "FALSE", "NULL", "STRING",
+		"RMUSTACHE", "LPAREN", "RPAREN", "DOT", "ID", "NUMBER", "COMMA", "WS",
 		"UNKNOWN",
 	];
 	public static readonly VOCABULARY: Vocabulary = new VocabularyImpl(BindingLanguageLexer._LITERAL_NAMES, BindingLanguageLexer._SYMBOLIC_NAMES, []);
@@ -147,7 +144,7 @@ export class BindingLanguageLexer extends Lexer {
 		"|!\x03\x02\x02\x02}~\x07+\x02\x02~#\x03\x02\x02\x02\x7F\x80\x070\x02\x02" +
 		"\x80%\x03\x02\x02\x02\x81\x85\t\x05\x02\x02\x82\x84\t\x06\x02\x02\x83" +
 		"\x82\x03\x02\x02\x02\x84\x87\x03\x02\x02\x02\x85\x83\x03\x02\x02\x02\x85" +
-		"\x86\x03\x02\x02\x02\x86\'\x03\x02\x02\x02\x87\x85\x03\x02\x02\x02\x88" +
+		"\x86\x03\x02\x02\x02\x86'\x03\x02\x02\x02\x87\x85\x03\x02\x02\x02\x88" +
 		"\x8A\x05\x12\t\x02\x89\x88\x03\x02\x02\x02\x8A\x8B\x03\x02\x02\x02\x8B" +
 		"\x89\x03\x02\x02\x02\x8B\x8C\x03\x02\x02\x02\x8C\x93\x03\x02\x02\x02\x8D" +
 		"\x8F\x05$\x12\x02\x8E\x90\x05\x12\t\x02\x8F\x8E\x03\x02\x02\x02\x90\x91" +
