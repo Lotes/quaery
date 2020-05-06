@@ -1,0 +1,61 @@
+.token-LMUSTACHE, .token-RMUSTACHE {
+  color: black;
+  font-weight: bold;
+}
+.token-TEXT {
+  color: black;
+}
+.token-UNIT {
+  color: blue;
+  font-style: italic;
+  font-weight: bold;
+}
+.token-COMMA, .token-DOT, .token-TRUE, .token-FALSE, .token-NULL {
+  color: black;
+  font-weight: bold;
+}
+.token-STRING {
+  color: orange;
+}
+.token-LPAREN, .token-RPAREN {
+  color: black;
+  font-weight: bold;  
+}
+.token-ID {
+  color: black;  
+}
+.token-NUMBER {
+  color: fuchsia;  
+}
+.token-WS {
+  color: white;
+}
+.token-UNKNOWN {
+  color: red;
+}
+
+
+.token-TEXT {
+  background-color: white;
+}
+
+.token-LMUSTACHE,
+.token-RMUSTACHE {
+  background-color: white;
+}
+
+.token-UNIT,
+.token-COMMA,
+.token-DOT,
+.token-TRUE,
+.token-FALSE,
+.token-NULL,
+.token-STRING,
+.token-LPAREN, .token-RPAREN,
+.token-ID,
+.token-NUMBER,
+.token-WS,
+.token-UNKNOWN {
+  background-color: silver;
+  font-family: monospace;
+}

@@ -32,11 +32,12 @@ export class BindingLanguageLexer extends Lexer {
 	public static readonly COMMA = 14;
 	public static readonly WS = 15;
 	public static readonly UNKNOWN = 16;
+	public static readonly IGNORE = 2;
 	public static readonly WITHIN_BINDING_MODE = 1;
 
 	// tslint:disable:no-trailing-whitespace
 	public static readonly channelNames: string[] = [
-		"DEFAULT_TOKEN_CHANNEL", "HIDDEN",
+		"DEFAULT_TOKEN_CHANNEL", "HIDDEN", "IGNORE",
 	];
 
 	// tslint:disable:no-trailing-whitespace
@@ -157,8 +158,8 @@ export class BindingLanguageLexer extends Lexer {
 		"\x02\x02\x98\x97\x03\x02\x02\x02\x99\x9A\x03\x02\x02\x02\x9A\x98\x03\x02" +
 		"\x02\x02\x9A\x9B\x03\x02\x02\x02\x9B\x9C\x03\x02\x02\x02\x9C\x9D\b\x16" +
 		"\x04\x02\x9D-\x03\x02\x02\x02\x9E\x9F\v\x02\x02\x02\x9F/\x03\x02\x02\x02" +
-		"\x0F\x02\x039;=Woq\x85\x8B\x91\x93\x9A\x05\x04\x03\x02\x04\x02\x02\b\x02" +
-		"\x02";
+		"\x0F\x02\x039;=Woq\x85\x8B\x91\x93\x9A\x05\x04\x03\x02\x04\x02\x02\x02" +
+		"\x04\x02";
 	public static __ATN: ATN;
 	public static get _ATN(): ATN {
 		if (!BindingLanguageLexer.__ATN) {
