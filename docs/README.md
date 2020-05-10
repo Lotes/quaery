@@ -10,6 +10,8 @@ I want to spread knowledge about compiler construction.
 
 I want to gain new experience to become a wise and old man.
 
+The tutorial should be simple and short. Big snippets of source code are a no-go. Concepts over implementation.
+
 ### Your achievements after completing
 
 You should have gained the knowledge to understand the theory behind computer language engineering.
@@ -23,4 +25,7 @@ Short examples are better for mental processing. Nevertheless... if something so
 
 The language that I will develop has the following features:
 
-* ...
+* Knowledge
+  * formal languages
+  * collect syntax an semantics ideas
+  * write grammar
