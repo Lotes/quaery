@@ -3,7 +3,7 @@ import './Editor.css';
 import { BindingLanguageLexer } from '../parser/generated/BindingLanguageLexer';
 import { ANTLRInputStream } from 'antlr4ts';
 import { getTokenName } from '../parser/Tokens';
-import { CodeJar } from "codejar";
+import { CodeJar } from "./codejar";
 
 export enum Direction {
   Left,

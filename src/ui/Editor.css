@@ -1,3 +1,9 @@
+.error {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: red;
+}
+
 .token-LMUSTACHE, .token-RMUSTACHE {
   color: black;
   font-weight: bold;
