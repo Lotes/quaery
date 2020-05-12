@@ -1,4 +1,4 @@
-import { Range } from "../ast/RangeExtensions";
+import { Token } from "antlr4ts";
 
 export type TranslationKey = string;
 export type TranslationParameterValue = string | number | boolean;
@@ -24,12 +24,30 @@ export function format(messageTemplate: string, parameters: TranslationParameter
   return result;
 }
 
+export enum LocationKind {
+  Token, Offset
+}
+
+export interface TokenLocation {
+  kind: LocationKind.Token;
+  start: Token;
+  stop: Token;
+}
+
+export interface OffsetLocation {
+  kind: LocationKind.Offset;
+  start: number;
+  stop: number;
+}
+
+export type Location = TokenLocation | OffsetLocation;
+
 export class SyntaxError extends Error {
   translationKey: TranslationKey;
   defaultMessageTemplate: string;
   parameters: TranslationParameters;
-  location: Range;
-  constructor(translationKey: TranslationKey, defaultMessageTemplate: string, parameters: TranslationParameters, location: Range) {
+  location: Location;
+  constructor(translationKey: TranslationKey, defaultMessageTemplate: string, parameters: TranslationParameters, location: Location) {
     super(format(defaultMessageTemplate, parameters));
     this.translationKey = translationKey;
     this.defaultMessageTemplate = defaultMessageTemplate;
