@@ -6,7 +6,6 @@ import { LocatableExpressionVisitor, LocatableExpression } from "./BindingExpres
 import { LocatableFunctionCall, LocatablePropertyAccess } from "../ast/RangeExtensions";
 import { ExpressionKind } from "../ast/ExpressionKind";
 import { newRangeFromTokens } from "../ast/factory";
-import { PureComponent } from "react";
 
 export enum MemberAccessKind {
   Property,

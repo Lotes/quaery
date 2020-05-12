@@ -8,7 +8,7 @@ import { LocatableExtension } from "../ast/RangeExtensions";
 import { SyntaxError } from "../errors/SyntaxError";
 import { newRangeFromTokens } from "../ast/factory";
 
-export function parse(input: string): Chunk<LocatableExtension>[] {
+export function createParsingEnvironmentFor(input: string) {
   const errors: Error[] = [];
   const errorListener: ANTLRErrorListener<Token> = {
     syntaxError(_recognizer, _offendingSymbol, _line, _positionInLine, _message, e) {
@@ -63,8 +63,16 @@ export function parse(input: string): Chunk<LocatableExtension>[] {
   const parser = new BindingLanguageParser(tokenStream);
   parser.removeErrorListeners();
   parser.addErrorListener(errorListener);
-  const tree = parser.chunks();
 
+  return {
+    lexer,
+    parser,
+    errors
+  };
+}
+
+export function parse(input: string): Chunk<LocatableExtension>[] {
+  const { parser, errors } = createParsingEnvironmentFor(input);
 
   if (errors.length > 0) {
     if (errors.length === 1)
@@ -73,6 +81,7 @@ export function parse(input: string): Chunk<LocatableExtension>[] {
       throw new AggregateError(errors);
   }
 
+  const tree = parser.chunks();
   const visitor = new ChunkSequenceVisitor();
   return visitor.visit(tree);
 }
