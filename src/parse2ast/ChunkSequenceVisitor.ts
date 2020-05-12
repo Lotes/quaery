@@ -4,7 +4,7 @@ import { TextChunkContext, BindingChunkContext, ChunksContext } from "../parser/
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { LocatableExpressionVisitor } from "./BindingExpressionVisitor";
 import { newTextChunk, newBindingChunk } from "../ast/factory";
-import { LocatableExtension } from "../ast/RangeExtensions";
+import { LocatableExtension } from "../ast/TokenExtensions";
 
 export class ChunkSequenceVisitor extends AbstractParseTreeVisitor<Chunk<LocatableExtension>[]> implements BindingLanguageParserVisitor<Chunk<LocatableExtension>[]> {
   private bindingExpressionVisitor = new LocatableExpressionVisitor();

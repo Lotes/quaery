@@ -1,20 +1,24 @@
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguageParserVisitor";
-import { BindingExpression } from "../ast/SyntaxTree";
 import { PropertyContext, FunctionCallContext, ParametersContext } from "../parser/generated/BindingLanguageParser";
 import { LocatableExpressionVisitor, LocatableExpression } from "./BindingExpressionVisitor";
-import { LocatableFunctionCall, LocatablePropertyAccess } from "../ast/RangeExtensions";
+import { LocatableFunctionCall, LocatablePropertyAccess } from "../ast/TokenExtensions";
 import { ExpressionKind } from "../ast/ExpressionKind";
-import { newRangeFromTokens } from "../ast/factory";
+import { Token } from "antlr4ts";
 
 export enum MemberAccessKind {
   Property,
   FunctionCall
 }
 
+export interface Parameters {
+  args: LocatableExpression[];
+  commas: Token[];
+}
+
 export interface MemberAccess {
   kind: MemberAccessKind,
-  payload: string | BindingExpression[];
+  payload: string | Parameters;
   locations: LocatablePropertyAccess | LocatableFunctionCall;
 }
 
@@ -34,9 +38,10 @@ export class TailVisitor extends AbstractParseTreeVisitor<MemberAccess[]> implem
       payload: ctx._name.text,
       locations: {
         kind: ExpressionKind.PropertyAccess,
-        locationDot: newRangeFromTokens(ctx._dot),
-        locationSelf: newRangeFromTokens(ctx._start, ctx._stop),
-        locationId: newRangeFromTokens(ctx._name)
+        tokenDot: ctx._dot,
+        tokenId: ctx._name,
+        tokenStart: ctx._start,
+        tokenStop: ctx._stop
       }
     } as MemberAccess].concat(tail);
   };
@@ -49,17 +54,27 @@ export class TailVisitor extends AbstractParseTreeVisitor<MemberAccess[]> implem
       payload: parameters,
       locations: {
         kind: ExpressionKind.FunctionCall,
-        locationSelf: newRangeFromTokens(ctx._start, ctx._stop),
-        locationActualParameters: parameters.map(p => p.locationSelf),
-        locationLeftParenthesis: newRangeFromTokens(ctx._lparen),
-        locationRightParenthesis: newRangeFromTokens(ctx._rparen)
+        tokenLeftParenthesis: ctx._lparen,
+        tokenRightParenthesis: ctx._rparen,
+        tokenStart: ctx._start,
+        tokenStop: ctx._stop ?? ctx._start
       }
     } as MemberAccess].concat(tail);
   };
 
-  visitCustomParameters(ctx: ParametersContext): LocatableExpression[] {
+  visitCustomParameters(ctx: ParametersContext): Parameters {
     const lhs = [this.expressionVisitor.visit(ctx._lhs)];
-    const rhs = ctx._rhs != null ? this.visitCustomParameters(ctx._rhs) : [];
-    return lhs.concat(rhs);
+    if (ctx._rhs != null) {
+      const rec = this.visitCustomParameters(ctx._rhs);
+      return {
+        args: lhs.concat(rec.args),
+        commas: [ctx._comma].concat(rec.commas)
+      }
+    } else {
+      return {
+        args: lhs,
+        commas: []
+      }
+    }
   }
 }

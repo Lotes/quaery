@@ -465,7 +465,7 @@ export class BindingLanguageParser extends Parser {
 			if (_la === BindingLanguageParser.COMMA) {
 				{
 				this.state = 69;
-				this.match(BindingLanguageParser.COMMA);
+				_localctx._comma = this.match(BindingLanguageParser.COMMA);
 				this.state = 70;
 				_localctx._rhs = this.parameters();
 				}
@@ -1032,6 +1032,7 @@ export class FunctionCallContext extends ParserRuleContext {
 
 export class ParametersContext extends ParserRuleContext {
 	public _lhs: ParameterContext;
+	public _comma: Token;
 	public _rhs: ParametersContext;
 	public parameter(): ParameterContext {
 		return this.getRuleContext(0, ParameterContext);

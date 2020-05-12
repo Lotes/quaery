@@ -2,10 +2,11 @@ import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguag
 import { Unit, ExtendedBindingExpression } from "../ast/SyntaxTree";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext, BindingExpressionContext, TrueLiteralContext, FalseLiteralContext, NullLiteralContext } from "../parser/generated/BindingLanguageParser";
-import { TailVisitor, MemberAccessKind } from "./TailVisitor";
-import { newIdentifier, newNumber, newNull, newString, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall, newRangeFromTokens } from "../ast/factory";
+import { TailVisitor, MemberAccessKind, Parameters } from "./TailVisitor";
+import { newIdentifier, newNumber, newNull, newString, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/factory";
 import { ExpressionKind } from "../ast/ExpressionKind";
-import { LocatableExtension } from "../ast/RangeExtensions";
+import { LocatableExtension } from "../ast/TokenExtensions";
+import { Token } from "antlr4ts";
 
 export type LocatableExpression = ExtendedBindingExpression<LocatableExtension>;
 
@@ -16,7 +17,8 @@ export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<Locatab
     const tail = ctx._next != null ? this.tailVisitor.visit(ctx._next) : [];
     const leaf = newIdentifier<LocatableExtension>(ctx._name.text!, {
       kind: ExpressionKind.Identifier,
-      locationSelf: newRangeFromTokens(ctx._name)
+      tokenStart: ctx._start,
+      tokenStop: ctx._stop ?? ctx._start,
     });
     return tail.reduce<LocatableExpression>((lhs, rhs) => {
       const kind = rhs.kind === MemberAccessKind.Property
@@ -26,12 +28,15 @@ export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<Locatab
       if (kind === ExpressionKind.PropertyAccess) {
         return newPropertyAccess<LocatableExtension>(operand, rhs.payload as string, {
           ...rhs.locations,
-          locationValue: operand.locationSelf
+          tokenStart: ctx._start,
+          tokenStop: ctx._stop ?? ctx._start,
         });
       } else {
-        return newFunctionCall<LocatableExtension>(operand, rhs.payload as LocatableExpression[], {
+        const parameters = rhs.payload as Parameters;
+        return newFunctionCall<LocatableExtension>(operand, parameters.args, {
           ...rhs.locations,
-          locationValue: operand.locationSelf
+          tokenStart: ctx._start,
+          tokenStop: ctx._stop ?? ctx._start,
         });
       }
     }, leaf);
@@ -39,7 +44,8 @@ export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<Locatab
 
   visitNumberLiteral = (ctx: NumberLiteralContext) => newNumber<LocatableExtension>(parseFloat(ctx._value.text!), {
     kind: ExpressionKind.Number,
-    locationSelf: newRangeFromTokens(ctx._value)
+    tokenStart: ctx._start,
+    tokenStop: ctx._stop ?? ctx._start,
   });
 
   visitStringLiteral = (ctx: StringLiteralContext) => newString<LocatableExtension>(
@@ -48,22 +54,26 @@ export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<Locatab
       .replace("\\\\", "\\")
       .replace("\\\"", "\""), {
     kind: ExpressionKind.String,
-    locationSelf: newRangeFromTokens(ctx._value)
+    tokenStart: ctx._start,
+    tokenStop: ctx._stop ?? ctx._start,
   });
 
   visitTrueLiteral = (ctx: TrueLiteralContext) => newBoolean<LocatableExtension>(true, {
     kind: ExpressionKind.Boolean,
-    locationSelf: newRangeFromTokens(ctx._value)
+    tokenStart: ctx._start,
+    tokenStop: ctx._stop ?? ctx._start,
   });
 
   visitFalseLiteral = (ctx: FalseLiteralContext) => newBoolean<LocatableExtension>(false, {
     kind: ExpressionKind.Boolean,
-    locationSelf: newRangeFromTokens(ctx._value)
+    tokenStart: ctx._start,
+    tokenStop: ctx._stop ?? ctx._start,
   });
 
   visitNullLiteral = (ctx: NullLiteralContext) => newNull<LocatableExtension>({
     kind: ExpressionKind.Boolean,
-    locationSelf: newRangeFromTokens(ctx._value)
+    tokenStart: ctx._start,
+    tokenStop: ctx._stop ?? ctx._start,
   });
 
   visitBinding = (ctx: BindingContext) => this.visit(ctx.bindingExpression());
@@ -82,21 +92,31 @@ export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<Locatab
     }
     return newUnitAnnotation(operand, unit, {
       kind: ExpressionKind.UnitAnnotation,
-      locationSelf: newRangeFromTokens(ctx._start, ctx._stop),
-      locationUnit: newRangeFromTokens(ctx._unit),
-      locationValue: operand.locationSelf
+      tokenStart: ctx._start,
+      tokenStop: ctx._stop ?? ctx._start,
+      tokenUnit: ctx._unit,
     });
   };
 
   visitParameter = (ctx: ParameterContext) => this.visit(ctx.bindingExpression());
 
   protected defaultResult(): LocatableExpression {
+    const nullToken: Token = {
+      channel: 0,
+      charPositionInLine: 0,
+      inputStream: undefined,
+      line: 0,
+      startIndex: 0,
+      stopIndex: 0,
+      text: "",
+      tokenIndex: -1,
+      tokenSource: undefined,
+      type: 0
+    };
     return newString<LocatableExtension>("", {
-      kind: ExpressionKind.String,
-      locationSelf: {
-        startIndex: -1,
-        stopIndex: -1
-      }
+      kind: ExpressionKind.Null,
+      tokenStart: nullToken,
+      tokenStop: nullToken,
     });
   }
 }

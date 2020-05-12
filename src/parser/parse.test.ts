@@ -6,7 +6,7 @@ import { isObject, isArray } from "util";
 function hideLocations(expression: any): BindingExpression {
   const result: any = { ...expression };
   for (let key of Object.keys(result)) {
-    if (key.includes("location")) {
+    if (key.includes("token")) {
       delete result[key];
     } else if (isObject(result[key]) && result[key].kind != null) {
       result[key] = hideLocations(result[key]);

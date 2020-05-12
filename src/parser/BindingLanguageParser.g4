@@ -27,6 +27,6 @@ property: dot = DOT name = ID next = tail?;
 functionCall:
 	lparen = LPAREN list = parameters? rparen = RPAREN next = tail?;
 
-parameters: lhs = parameter (COMMA rhs = parameters)?;
+parameters: lhs = parameter (comma = COMMA rhs = parameters)?;
 
 parameter: bindingExpression;

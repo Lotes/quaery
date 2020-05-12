@@ -1,9 +1,5 @@
 import { ExpressionKind } from "./ExpressionKind";
-
-export interface Range {
-  startIndex: number;
-  stopIndex: number;
-}
+import { Token } from "antlr4ts";
 
 export type LocatableExtension
   = LocatableStringLiteral
@@ -18,7 +14,8 @@ export type LocatableExtension
 
 export interface LocatableExtensionBase {
   kind: ExpressionKind;
-  locationSelf: Range;
+  tokenStart: Token;
+  tokenStop: Token;
 }
 
 export interface LocatableStringLiteral extends LocatableExtensionBase {
@@ -43,21 +40,18 @@ export interface LocatableIdentifier extends LocatableExtensionBase {
 
 export interface LocatablePropertyAccess extends LocatableExtensionBase {
   kind: ExpressionKind.PropertyAccess;
-  locationDot: Range;
-  locationId: Range;
-  locationValue?: Range;
+  tokenDot: Token;
+  tokenId: Token;
 }
 
 export interface LocatableFunctionCall extends LocatableExtensionBase {
   kind: ExpressionKind.FunctionCall;
-  locationLeftParenthesis: Range;
-  locationRightParenthesis: Range;
-  locationActualParameters: Range[];
-  locationValue?: Range;
+  tokenLeftParenthesis: Token;
+  tokenRightParenthesis: Token;
+  tokenCommas: Token[];
 }
 
 export interface LocatableUnitAnnotation extends LocatableExtensionBase {
   kind: ExpressionKind.UnitAnnotation;
-  locationUnit: Range;
-  locationValue: Range;
+  tokenUnit: Token;
 }
