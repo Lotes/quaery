@@ -1,6 +1,4 @@
 import { ExtendedChunk, ExtendedTextChunk, ExtendedBindingChunk, ExtendedNode, ExtendedNullLiteral, ExtendedStringLiteral, ExtendedNumberLiteral, ExtendedBooleanLiteral, ExtendedIdentifier, BaseUnitAnnotation, BasePropertyAccess, BaseFunctionCall, BaseTextChunk, BaseBindingChunk } from "../ast/SyntaxTree";
-import { AggregateError } from "../errors/AggregateError";
-import { newTextChunk } from "./factory";
 import { NodeKind } from "./NodeKind";
 
 export interface SyntaxTreeFolder<TArgument, TInputExtension, TOutputExtension> {

@@ -61,6 +61,13 @@ export function parse(input: string) {
   lexer.removeErrorListeners();
   lexer.addErrorListener(errorListener);
   const tokenStream = new CommonTokenStream(lexer);
+  const tokens = lexer.getAllTokens().map((tk, index) => ({
+    ...tk,
+    text: tk.text,
+    type: tk.type,
+    tokenIndex: index
+  }));
+  lexer.reset();
 
   const parser = new BindingLanguageParser(tokenStream);
   parser.removeErrorListeners();
@@ -70,8 +77,6 @@ export function parse(input: string) {
   const visitor = new ChunkSequenceVisitor();
   const model = visitor.visit(tree);
 
-  lexer.reset();
-  const tokens = lexer.getAllTokens();
 
   return {
     tokens,

@@ -2,24 +2,16 @@ import { parse } from "../parser/parse";
 import { getTokenName } from "../parser/Tokens";
 import { Token } from "antlr4ts";
 import { AbstractSyntaxTreeFolder, SyntaxTreeFolder } from "../ast/fold";
-import { LocatableExtension, LocatablePropertyAccess, LocatableUnitAnnotation, LocatableFunctionCall, LocatableBindingChunk, LocatableTextChunk } from "../ast/TokenExtensions";
-import { ExtendedNode, BaseUnitAnnotation, BasePropertyAccess, BaseFunctionCall, ExtendedStringLiteral, ExtendedNumberLiteral, ExtendedBooleanLiteral, ExtendedNullLiteral, ExtendedIdentifier, ExtendedPropertyAccess, ExtendedUnitAnnotation, ExtendedFunctionCall, ExtendedBindingChunk, ExtendedTextChunk, BaseBindingChunk, BaseTextChunk, ExtendedChunk } from "../ast/SyntaxTree";
+import { LocatableExtension, LocatablePropertyAccess, LocatableUnitAnnotation, LocatableFunctionCall, LocatableBindingChunk, LocatableTextChunk, LocatableExtensionBase } from "../ast/TokenExtensions";
+import { ExtendedNode, BaseUnitAnnotation, BasePropertyAccess, BaseFunctionCall, ExtendedStringLiteral, ExtendedNumberLiteral, ExtendedBooleanLiteral, ExtendedNullLiteral, ExtendedIdentifier, ExtendedPropertyAccess, ExtendedUnitAnnotation, ExtendedFunctionCall, ExtendedBindingChunk, BaseBindingChunk, BaseTextChunk, ExtendedChunk } from "../ast/SyntaxTree";
 import { Rule } from "../parser/Rules";
 import { NodeKind } from "../ast/NodeKind";
-import { BindingLanguageLexer } from "../parser/generated/BindingLanguageLexer";
 
 const createTokenSpan = (content: string, tokenType: number) => {
   const span = document.createElement("span");
   span.setAttribute("class", "token-" + getTokenName(tokenType));
   span.textContent = content;
   return span;
-}
-
-const createNodeSpan = (content: HTMLElement[], ruleName: string) => {
-  const span = document.createElement("span");
-  span.setAttribute("class", "rule-" + ruleName);
-  content.forEach(e => e && span.appendChild(e));
-  return span as HTMLElement;
 }
 
 function join<T>(operands: T[], operators: T[]): T[] {
@@ -37,28 +29,84 @@ function join<T>(operands: T[], operators: T[]): T[] {
   return result;
 }
 
-interface ResultExtension {
-  node: HTMLElement;
+type TokenTree = TokenNode | Token;
+
+interface TokenNode {
+  name: string;
+  children: TokenTree[];
 }
 
-class CreateSpansFolder
+function isTokenNode(tree: TokenTree) {
+  return "children" in tree && "name" in tree;
+}
+
+interface ResultExtension {
+  node: TokenTree;
+}
+
+class TokenTreeFolder
   extends AbstractSyntaxTreeFolder<{}, LocatableExtension, LocatableExtension & ResultExtension>
   implements SyntaxTreeFolder<{}, LocatableExtension, LocatableExtension & ResultExtension> {
+
+  private tokens: Token[];
+
+  constructor(tokens: Token[]) {
+    super();
+    this.tokens = tokens;
+  }
+
+  getTokenTreeRange(tree: TokenTree): [number, number] {
+    if (isTokenNode(tree)) {
+      const node = tree as TokenNode;
+      const left = this.getTokenTreeRange(node.children[0]);
+      const right = this.getTokenTreeRange(node.children[node.children.length - 1]);
+      return [left[0], right[1]];
+    } else {
+      const token = tree as Token;
+      return [token.tokenIndex, token.tokenIndex];
+    }
+  }
+
+  createTokenTree(name: string, children: TokenTree[], locatable: LocatableExtensionBase): TokenTree {
+    if (children.length === 1) {
+      return children[0];
+    } else {
+      return {
+        name,
+        children: this.addHiddenTokens(children, locatable)
+      };
+    }
+  }
+
+  addHiddenTokens(children: TokenTree[], locatable: LocatableExtensionBase): TokenTree[] {
+    const result: TokenTree[] = [];
+    const startIndex = locatable.tokenStart.tokenIndex;
+    const stopIndex = locatable.tokenStop.tokenIndex;
+    let tokenIndex = startIndex;
+    for (let index = 0; index < children.length; index++) {
+      const child = children[index];
+      const [left, right] = this.getTokenTreeRange(child);
+      while (tokenIndex < left) {
+        result.push(this.tokens[tokenIndex]);
+        tokenIndex++;
+      }
+      result.push(child);
+      tokenIndex = right;
+    }
+    while (tokenIndex < stopIndex) {
+      result.push(this.tokens[tokenIndex]);
+      tokenIndex++;
+    }
+    return result;
+  }
+
   visitChunk_Text(chunk: BaseTextChunk, arg: {}): ExtendedChunk<LocatableExtension & ResultExtension> {
     const locatable = chunk as unknown as LocatableTextChunk;
     return {
       ...locatable,
       ...chunk,
-      node: createNodeSpan([], Rule.TextChunk)
+      node: this.createTokenTree(Rule.TextChunk, [locatable.tokenStart], locatable)
     }
-  }
-  private tokenMap: Map<number, HTMLElement>;
-  constructor(tokens: Token[], tokenMap: Map<number, HTMLElement>) {
-    super();
-    this.tokenMap = tokenMap;
-  }
-  getSpanOfToken(token: Token): HTMLElement {
-    return this.tokenMap.get(token.tokenIndex)!;
   }
   visitBinding(binding: ExtendedNode<LocatableExtension>, arg: {}): ExtendedNode<LocatableExtension & ResultExtension> {
     switch (binding.kind) {
@@ -70,38 +118,32 @@ class CreateSpansFolder
       case NodeKind.PropertyAccess: {
         const unprocessed = binding as ExtendedPropertyAccess<LocatablePropertyAccess>;
         const operand = this.visitBinding(unprocessed.operand, arg);
-        const dotSpan = this.getSpanOfToken(unprocessed.tokenDot);
-        const idSpan = this.getSpanOfToken(unprocessed.tokenId);
         const processed: ExtendedPropertyAccess<LocatableExtension & ResultExtension> = {
           ...unprocessed,
           operand,
-          node: createNodeSpan([operand.node, dotSpan, idSpan], Rule.PropertyAccess)
+          node: this.createTokenTree(Rule.PropertyAccess, [operand.node, unprocessed.tokenDot, unprocessed.tokenId], unprocessed)
         };
         return processed;
       }
       case NodeKind.UnitAnnotation: {
         const unprocessed = binding as ExtendedUnitAnnotation<LocatableUnitAnnotation>;
         const operand = this.visitBinding(unprocessed.operand, arg);
-        const unitSpan = this.getSpanOfToken(unprocessed.tokenUnit);
         const processed: ExtendedUnitAnnotation<LocatableExtension & ResultExtension> = {
           ...unprocessed,
           operand,
-          node: createNodeSpan([operand.node, unitSpan], Rule.UnitAnnotation)
+          node: this.createTokenTree(Rule.UnitAnnotation, [operand.node, unprocessed.tokenUnit], unprocessed)
         }
         return processed;
       }
       case NodeKind.FunctionCall: {
         const unprocessed = binding as ExtendedFunctionCall<LocatableFunctionCall>;
         const operand = this.visitBinding(unprocessed.operand, arg);
-        const lparenSpan = this.getSpanOfToken(unprocessed.tokenLeftParenthesis);
-        const rparenSpan = this.getSpanOfToken(unprocessed.tokenRightParenthesis);
-        const commaSpans = unprocessed.tokenCommas.map(c => this.getSpanOfToken(c));
         const actualParameters = unprocessed.actualParameters.map(p => this.visitBinding(p, arg));
         const processed: ExtendedFunctionCall<LocatableExtension & ResultExtension> = {
           ...binding,
           actualParameters,
           operand,
-          node: createNodeSpan([operand.node, lparenSpan].concat(join(actualParameters.map(p => p.node), commaSpans)).concat([rparenSpan]), Rule.FunctionCall)
+          node: this.createTokenTree(Rule.FunctionCall, [operand.node, unprocessed.tokenLeftParenthesis].concat(join(actualParameters.map(p => p.node), unprocessed.tokenCommas)).concat([unprocessed.tokenRightParenthesis]), unprocessed)
         };
         return processed;
       }
@@ -115,8 +157,7 @@ class CreateSpansFolder
     return {
       ...locatable,
       ...chunk,
-      kind: NodeKind.BindingChunk,
-      node: createNodeSpan([], Rule.BindingChunk),
+      node: this.createTokenTree(Rule.BindingChunk, [locatable.tokenLeftMustache, chunk.binding.node, locatable.tokenRightMustache], locatable),
     };
   }
 
@@ -130,39 +171,50 @@ class CreateSpansFolder
     throw new Error("Method not implemented.");
   }
   visitBinding_StringLiteral(binding: ExtendedStringLiteral<LocatableExtension>, arg: {}): ExtendedNode<LocatableExtension & ResultExtension> {
-    const span = this.getSpanOfToken(binding.tokenStart);
     return {
       ...binding,
-      node: createNodeSpan([span], Rule.StringLiteral) as HTMLElement
+      node: this.createTokenTree(Rule.StringLiteral, [binding.tokenStart], binding)
     };
   }
   visitBinding_NumberLiteral(binding: ExtendedNumberLiteral<LocatableExtension>, arg: {}): ExtendedNode<LocatableExtension & ResultExtension> {
-    const span = this.getSpanOfToken(binding.tokenStart);
     return {
       ...binding,
-      node: createNodeSpan([span], Rule.NumberLiteral) as HTMLElement
+      node: this.createTokenTree(Rule.NumberLiteral, [binding.tokenStart], binding)
     };
   }
   visitBinding_BooleanLiteral(binding: ExtendedBooleanLiteral<LocatableExtension>, arg: {}): ExtendedNode<LocatableExtension & ResultExtension> {
-    const span = this.getSpanOfToken(binding.tokenStart);
     return {
       ...binding,
-      node: createNodeSpan([span], Rule.BooleanLiteral) as HTMLElement
+      node: this.createTokenTree(Rule.BooleanLiteral, [binding.tokenStart], binding)
     };
   }
   visitBinding_NullLiteral(binding: ExtendedNullLiteral<LocatableExtension>, arg: {}): ExtendedNode<LocatableExtension & ResultExtension> {
-    const span = this.getSpanOfToken(binding.tokenStart);
     return {
       ...binding,
-      node: createNodeSpan([span], Rule.NullLiteral) as HTMLElement
+      node: this.createTokenTree(Rule.NullLiteral, [binding.tokenStart], binding)
     };
   }
   visitBinding_Identifier(binding: ExtendedIdentifier<LocatableExtension>, arg: {}): ExtendedNode<LocatableExtension & ResultExtension> {
-    const span = this.getSpanOfToken(binding.tokenStart);
     return {
       ...binding,
-      node: createNodeSpan([span], Rule.Identifier) as HTMLElement
+      node: this.createTokenTree(Rule.Identifier, [binding.tokenStart], binding)
     };
+  }
+}
+
+function toHTML(spans: Map<number, HTMLElement>, tree: TokenTree): HTMLElement {
+  if (isTokenNode(tree)) {
+    const node = tree as TokenNode;
+    const span = document.createElement("span");
+    node.children
+      .map(t => toHTML(spans, t))
+      .forEach(html => span.appendChild(html));
+    span.setAttribute("class", "rule-" + node.name);
+    return span;
+  } else {
+    const token = tree as Token;
+    const span = spans.get(token.tokenIndex)!;
+    return span;
   }
 }
 
@@ -170,21 +222,9 @@ export function highlight(dom: HTMLElement, input: string): void {
   const { tokens, model } = parse(input);
   const spans = new Map<number, HTMLElement>();
   tokens.forEach(tk => spans.set(tk.tokenIndex, createTokenSpan(tk.text!, tk.type)));
-  const folder = new CreateSpansFolder(tokens, spans);
-  model.forEach(ch => {
-    const chunk = folder.visitChunk(ch, spans);
-    switch (chunk.kind) {
-      case NodeKind.BindingChunk: {
-        const bindingChunk = chunk as ExtendedBindingChunk<LocatableExtension & ResultExtension>;
-        const node = bindingChunk.binding.node;
-        dom.appendChild(createNodeSpan([node], Rule.BindingChunk));
-        break;
-      }
-      case NodeKind.TextChunk: {
-        const text = (chunk as ExtendedTextChunk<LocatableExtension & ResultExtension>).text;
-        dom.appendChild(createTokenSpan(text, BindingLanguageLexer.TEXT));
-        break;
-      }
-    }
-  });
+  const folder = new TokenTreeFolder(tokens);
+  model
+    .map(ch => folder.visitChunk(ch, spans).node)
+    .forEach(ch => dom.appendChild(toHTML(spans, ch)))
+    ;
 }
