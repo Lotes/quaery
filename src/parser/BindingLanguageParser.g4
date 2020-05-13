@@ -8,7 +8,8 @@ chunks: chunk* EOF;
 
 chunk: TEXT # textChunk | binding # bindingChunk;
 
-binding: LMUSTACHE bindingExpression RMUSTACHE;
+binding:
+	lmustache = LMUSTACHE bindingExpression rmustache = RMUSTACHE;
 
 bindingExpression: value = expression unit = UNIT?;
 

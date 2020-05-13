@@ -1,8 +1,10 @@
-import { ExpressionKind } from "./ExpressionKind";
+import { NodeKind } from "./NodeKind";
 import { Token } from "antlr4ts";
 
 export type LocatableExtension
-  = LocatableStringLiteral
+  = LocatableTextChunk
+  | LocatableBindingChunk
+  | LocatableStringLiteral
   | LocatableNumberLiteral
   | LocatableBooleanLiteral
   | LocatableNullLiteral
@@ -13,45 +15,55 @@ export type LocatableExtension
   ;
 
 export interface LocatableExtensionBase {
-  kind: ExpressionKind;
+  kind: NodeKind;
   tokenStart: Token;
   tokenStop: Token;
 }
 
+export interface LocatableTextChunk extends LocatableExtensionBase {
+  kind: NodeKind.TextChunk;
+}
+
+export interface LocatableBindingChunk extends LocatableExtensionBase {
+  kind: NodeKind.BindingChunk;
+  tokenLeftMustache: Token;
+  tokenRightMustache: Token;
+}
+
 export interface LocatableStringLiteral extends LocatableExtensionBase {
-  kind: ExpressionKind.String;
+  kind: NodeKind.String;
 }
 
 export interface LocatableNumberLiteral extends LocatableExtensionBase {
-  kind: ExpressionKind.Number;
+  kind: NodeKind.Number;
 }
 
 export interface LocatableBooleanLiteral extends LocatableExtensionBase {
-  kind: ExpressionKind.Boolean;
+  kind: NodeKind.Boolean;
 }
 
 export interface LocatableNullLiteral extends LocatableExtensionBase {
-  kind: ExpressionKind.Null;
+  kind: NodeKind.Null;
 }
 
 export interface LocatableIdentifier extends LocatableExtensionBase {
-  kind: ExpressionKind.Identifier;
+  kind: NodeKind.Identifier;
 }
 
 export interface LocatablePropertyAccess extends LocatableExtensionBase {
-  kind: ExpressionKind.PropertyAccess;
+  kind: NodeKind.PropertyAccess;
   tokenDot: Token;
   tokenId: Token;
 }
 
 export interface LocatableFunctionCall extends LocatableExtensionBase {
-  kind: ExpressionKind.FunctionCall;
+  kind: NodeKind.FunctionCall;
   tokenLeftParenthesis: Token;
   tokenRightParenthesis: Token;
   tokenCommas: Token[];
 }
 
 export interface LocatableUnitAnnotation extends LocatableExtensionBase {
-  kind: ExpressionKind.UnitAnnotation;
+  kind: NodeKind.UnitAnnotation;
   tokenUnit: Token;
 }

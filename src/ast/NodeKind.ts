@@ -1,4 +1,6 @@
-export enum ExpressionKind {
+export enum NodeKind {
+  TextChunk,
+  BindingChunk,
   String,
   Number,
   Boolean,

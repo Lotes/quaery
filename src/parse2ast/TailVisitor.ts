@@ -3,7 +3,7 @@ import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguag
 import { PropertyContext, FunctionCallContext, ParametersContext } from "../parser/generated/BindingLanguageParser";
 import { LocatableExpressionVisitor, LocatableExpression } from "./BindingExpressionVisitor";
 import { LocatableFunctionCall, LocatablePropertyAccess } from "../ast/TokenExtensions";
-import { ExpressionKind } from "../ast/ExpressionKind";
+import { NodeKind } from "../ast/NodeKind";
 import { Token } from "antlr4ts";
 
 export enum MemberAccessKind {
@@ -37,7 +37,7 @@ export class TailVisitor extends AbstractParseTreeVisitor<MemberAccess[]> implem
       kind: MemberAccessKind.Property,
       payload: ctx._name.text,
       locations: {
-        kind: ExpressionKind.PropertyAccess,
+        kind: NodeKind.PropertyAccess,
         tokenDot: ctx._dot,
         tokenId: ctx._name,
         tokenStart: ctx._start,
@@ -53,7 +53,7 @@ export class TailVisitor extends AbstractParseTreeVisitor<MemberAccess[]> implem
       kind: MemberAccessKind.FunctionCall,
       payload: parameters,
       locations: {
-        kind: ExpressionKind.FunctionCall,
+        kind: NodeKind.FunctionCall,
         tokenLeftParenthesis: ctx._lparen,
         tokenRightParenthesis: ctx._rparen,
         tokenStart: ctx._start,

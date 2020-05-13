@@ -1,21 +1,4 @@
-import { ExpressionKind } from "./ExpressionKind";
-
-export enum ChunkKind {
-  Text,
-  Binding
-}
-
-export type Chunk<TExtension> = TextChunk | BindingChunk<TExtension>;
-
-export interface TextChunk {
-  kind: ChunkKind.Text;
-  text: string;
-}
-
-export interface BindingChunk<TExtension> {
-  kind: ChunkKind.Binding;
-  binding: ExtendedBindingExpression<TExtension>;
-}
+import { NodeKind } from "./NodeKind";
 
 export enum Unit {
   Pixels,
@@ -25,8 +8,15 @@ export enum Unit {
   Inch
 }
 
-export type ExtendedBindingExpression<TExtension>
-  = ExtendedStringLiteral<TExtension>
+export type ExtendedChunk<TExtension>
+  = ExtendedTextChunk<TExtension>
+  | ExtendedBindingChunk<TExtension>
+  ;
+
+export type ExtendedNode<TExtension>
+  = ExtendedTextChunk<TExtension>
+  | ExtendedBindingChunk<TExtension>
+  | ExtendedStringLiteral<TExtension>
   | ExtendedNumberLiteral<TExtension>
   | ExtendedBooleanLiteral<TExtension>
   | ExtendedNullLiteral<TExtension>
@@ -36,6 +26,8 @@ export type ExtendedBindingExpression<TExtension>
   | ExtendedUnitAnnotation<TExtension>
   ;
 
+export type ExtendedTextChunk<TExtension> = BaseTextChunk & TExtension;
+export type ExtendedBindingChunk<TExtension> = BaseBindingChunk<TExtension> & TExtension;
 export type ExtendedStringLiteral<TExtension> = BaseStringLiteral & TExtension;
 export type ExtendedNumberLiteral<TExtension> = BaseNumberLiteral & TExtension;
 export type ExtendedBooleanLiteral<TExtension> = BaseBooleanLiteral & TExtension;
@@ -45,46 +37,57 @@ export type ExtendedPropertyAccess<TExtension> = BasePropertyAccess<TExtension> 
 export type ExtendedFunctionCall<TExtension> = BaseFunctionCall<TExtension> & TExtension;
 export type ExtendedUnitAnnotation<TExtension> = BaseUnitAnnotation<TExtension> & TExtension;
 
+export interface BaseTextChunk {
+  kind: NodeKind.TextChunk;
+  text: string;
+}
+
+export interface BaseBindingChunk<TExtension> {
+  kind: NodeKind.BindingChunk;
+  binding: ExtendedNode<TExtension>;
+}
+
 export interface BaseStringLiteral {
-  kind: ExpressionKind.String;
+  kind: NodeKind.String;
   value: string;
 }
 
 export interface BaseNumberLiteral {
-  kind: ExpressionKind.Number;
+  kind: NodeKind.Number;
   value: number;
 }
 
 export interface BaseBooleanLiteral {
-  kind: ExpressionKind.Boolean;
+  kind: NodeKind.Boolean;
   value: boolean;
 }
 
 export interface BaseNullLiteral {
-  kind: ExpressionKind.Null;
+  kind: NodeKind.Null;
 }
 
 export interface BaseIdentifier {
-  kind: ExpressionKind.Identifier;
+  kind: NodeKind.Identifier;
   name: string;
 }
 
 export interface BaseFunctionCall<TExtension> {
-  kind: ExpressionKind.FunctionCall;
-  operand: ExtendedBindingExpression<TExtension>;
-  actualParameters: ExtendedBindingExpression<TExtension>[];
+  kind: NodeKind.FunctionCall;
+  operand: ExtendedNode<TExtension>;
+  actualParameters: ExtendedNode<TExtension>[];
 }
 
 export interface BasePropertyAccess<TExtension> {
-  kind: ExpressionKind.PropertyAccess;
-  operand: ExtendedBindingExpression<TExtension>;
+  kind: NodeKind.PropertyAccess;
+  operand: ExtendedNode<TExtension>;
   name: string;
 }
 
 export interface BaseUnitAnnotation<TExtension> {
-  kind: ExpressionKind.UnitAnnotation;
-  operand: ExtendedBindingExpression<TExtension>;
+  kind: NodeKind.UnitAnnotation;
+  operand: ExtendedNode<TExtension>;
   unit: Unit;
 }
 
-export type BindingExpression = ExtendedBindingExpression<{}>;
+export type Node = ExtendedNode<{}>;
+export type Chunk = ExtendedChunk<{}>;

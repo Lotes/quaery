@@ -1,14 +1,14 @@
 import { BindingLanguageParserVisitor } from "../parser/generated/BindingLanguageParserVisitor";
-import { Unit, ExtendedBindingExpression } from "../ast/SyntaxTree";
+import { Unit, ExtendedNode } from "../ast/SyntaxTree";
 import { AbstractParseTreeVisitor } from "antlr4ts/tree/AbstractParseTreeVisitor";
 import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, ParameterContext, BindingContext, BindingExpressionContext, TrueLiteralContext, FalseLiteralContext, NullLiteralContext } from "../parser/generated/BindingLanguageParser";
 import { TailVisitor, MemberAccessKind, Parameters } from "./TailVisitor";
 import { newIdentifier, newNumber, newNull, newString, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/factory";
-import { ExpressionKind } from "../ast/ExpressionKind";
+import { NodeKind } from "../ast/NodeKind";
 import { LocatableExtension } from "../ast/TokenExtensions";
 import { Token } from "antlr4ts";
 
-export type LocatableExpression = ExtendedBindingExpression<LocatableExtension>;
+export type LocatableExpression = ExtendedNode<LocatableExtension>;
 
 export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<LocatableExpression> implements BindingLanguageParserVisitor<LocatableExpression> {
   private tailVisitor = new TailVisitor(this);
@@ -16,16 +16,16 @@ export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<Locatab
   visitIdExpression = (ctx: IdExpressionContext) => {
     const tail = ctx._next != null ? this.tailVisitor.visit(ctx._next) : [];
     const leaf = newIdentifier<LocatableExtension>(ctx._name.text!, {
-      kind: ExpressionKind.Identifier,
+      kind: NodeKind.Identifier,
       tokenStart: ctx._start,
       tokenStop: ctx._stop ?? ctx._start,
     });
     return tail.reduce<LocatableExpression>((lhs, rhs) => {
       const kind = rhs.kind === MemberAccessKind.Property
-        ? ExpressionKind.PropertyAccess
-        : ExpressionKind.FunctionCall;
+        ? NodeKind.PropertyAccess
+        : NodeKind.FunctionCall;
       const operand = lhs;
-      if (kind === ExpressionKind.PropertyAccess) {
+      if (kind === NodeKind.PropertyAccess) {
         return newPropertyAccess<LocatableExtension>(operand, rhs.payload as string, {
           ...rhs.locations,
           tokenStart: ctx._start,
@@ -43,7 +43,7 @@ export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<Locatab
   };
 
   visitNumberLiteral = (ctx: NumberLiteralContext) => newNumber<LocatableExtension>(parseFloat(ctx._value.text!), {
-    kind: ExpressionKind.Number,
+    kind: NodeKind.Number,
     tokenStart: ctx._start,
     tokenStop: ctx._stop ?? ctx._start,
   });
@@ -53,25 +53,25 @@ export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<Locatab
       .substr(1, ctx._value.text!.length - 2)
       .replace("\\\\", "\\")
       .replace("\\\"", "\""), {
-    kind: ExpressionKind.String,
+    kind: NodeKind.String,
     tokenStart: ctx._start,
     tokenStop: ctx._stop ?? ctx._start,
   });
 
   visitTrueLiteral = (ctx: TrueLiteralContext) => newBoolean<LocatableExtension>(true, {
-    kind: ExpressionKind.Boolean,
+    kind: NodeKind.Boolean,
     tokenStart: ctx._start,
     tokenStop: ctx._stop ?? ctx._start,
   });
 
   visitFalseLiteral = (ctx: FalseLiteralContext) => newBoolean<LocatableExtension>(false, {
-    kind: ExpressionKind.Boolean,
+    kind: NodeKind.Boolean,
     tokenStart: ctx._start,
     tokenStop: ctx._stop ?? ctx._start,
   });
 
   visitNullLiteral = (ctx: NullLiteralContext) => newNull<LocatableExtension>({
-    kind: ExpressionKind.Boolean,
+    kind: NodeKind.Boolean,
     tokenStart: ctx._start,
     tokenStop: ctx._stop ?? ctx._start,
   });
@@ -91,7 +91,7 @@ export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<Locatab
         return operand;
     }
     return newUnitAnnotation(operand, unit, {
-      kind: ExpressionKind.UnitAnnotation,
+      kind: NodeKind.UnitAnnotation,
       tokenStart: ctx._start,
       tokenStop: ctx._stop ?? ctx._start,
       tokenUnit: ctx._unit,
@@ -114,7 +114,7 @@ export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<Locatab
       type: 0
     };
     return newString<LocatableExtension>("", {
-      kind: ExpressionKind.Null,
+      kind: NodeKind.Null,
       tokenStart: nullToken,
       tokenStop: nullToken,
     });

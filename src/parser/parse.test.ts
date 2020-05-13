@@ -1,9 +1,10 @@
 import { compile as originalCompile } from "./parse";
-import { Unit, Chunk, BindingExpression, ChunkKind } from "../ast/SyntaxTree";
+import { Unit, Node, Chunk, ExtendedBindingChunk } from "../ast/SyntaxTree";
 import { newString, newTextChunk, newBindingChunk, newIdentifier, newNumber, newNull, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/factory";
 import { isObject, isArray } from "util";
+import { NodeKind } from "../ast/NodeKind";
 
-function hideLocations(expression: any): BindingExpression {
+function hideLocations(expression: any): Node {
   const result: any = { ...expression };
   for (let key of Object.keys(result)) {
     if (key.includes("token")) {
@@ -14,15 +15,15 @@ function hideLocations(expression: any): BindingExpression {
       result[key] = result[key].map((item: any) => hideLocations(item));
     }
   }
-  return result as unknown as BindingExpression;
+  return result as unknown as Node;
 }
 
-function compile(text: string): Chunk<{}>[] {
+function compile(text: string): Chunk[] {
   return originalCompile(text).map(ch => {
-    if (ch.kind === ChunkKind.Binding) {
+    if (ch.kind === NodeKind.BindingChunk) {
       return {
         ...ch,
-        binding: hideLocations(ch.binding)
+        binding: hideLocations((ch as ExtendedBindingChunk<{}>).binding)
       }
     }
     return ch;
@@ -31,17 +32,17 @@ function compile(text: string): Chunk<{}>[] {
 
 describe("parse", () => {
   it("should parse text chunk", () => {
-    expect(compile("text")).toEqual([newTextChunk('text')]);
+    expect(compile("text")).toEqual([newTextChunk('text', {})]);
   });
 
   it("should parse text chunk with LBRACE at the end", () => {
-    expect(compile("text{")).toEqual([newTextChunk('text{')]);
+    expect(compile("text{")).toEqual([newTextChunk('text{', {})]);
   });
 
   it("should parse ID binding", () => {
     expect(compile("{{Id}}")).toEqual([newBindingChunk(
       newIdentifier("Id", {})
-    )]);
+      , {})]);
   });
 
   it("should not parse corrupted ID binding", () => {
@@ -67,42 +68,42 @@ describe("parse", () => {
   it("should parse NUMBER binding", () => {
     expect(compile("{{1234.5678}}")).toEqual([newBindingChunk(
       newNumber(1234.5678, {})
-    )]);
+      , {})]);
   });
 
   it("should parse STRING binding", () => {
     expect(compile("{{\"string\"}}")).toEqual([newBindingChunk(
       newString("string", {})
-    )]);
+      , {})]);
   });
 
   it("should parse TRUE binding", () => {
     expect(compile("{{true}}")).toEqual([newBindingChunk(
       newBoolean(true, {})
-    )]);
+      , {})]);
   });
 
   it("should parse FALSE binding", () => {
     expect(compile("{{false}}")).toEqual([newBindingChunk(
       newBoolean(false, {})
-    )]);
+      , {})]);
   });
 
   it("should parse NULL binding", () => {
     expect(compile("{{null}}")).toEqual([newBindingChunk(
       newNull({})
-    )]);
+      , {})]);
   });
 
   it("should parse UNIT binding", () => {
     expect(compile("{{100px}}")).toEqual([newBindingChunk(
       newUnitAnnotation(newNumber(100, {}), Unit.Pixels, {})
-    )]);
+      , {})]);
   });
   it("should parse property binding", () => {
     expect(compile("{{Image.Width}}")).toEqual([newBindingChunk(
       newPropertyAccess(newIdentifier("Image", {}), "Width", {})
-    )]);
+      , {})]);
   });
 
   it("should parse function call binding", () => {
@@ -114,7 +115,7 @@ describe("parse", () => {
           newNumber(456, {})
         ]
         , {})
-    )]);
+      , {})]);
   });
 
   it("should parse parameterless global function binding", () => {
@@ -123,6 +124,6 @@ describe("parse", () => {
         newIdentifier("random", {}),
         []
         , {})
-    )]);
+      , {})]);
   });
 });

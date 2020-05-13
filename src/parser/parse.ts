@@ -3,7 +3,7 @@ import { BindingLanguageLexer } from "./generated/BindingLanguageLexer";
 import { BindingLanguageParser } from "./generated/BindingLanguageParser";
 import { ChunkSequenceVisitor } from "../parse2ast/ChunkSequenceVisitor";
 import { AggregateError } from "../errors/AggregateError";
-import { Chunk } from "../ast/SyntaxTree";
+import { ExtendedChunk } from "../ast/SyntaxTree";
 import { LocatableExtension } from "../ast/TokenExtensions";
 import { SyntaxError, LocationKind, Location } from "../errors/SyntaxError";
 
@@ -81,7 +81,7 @@ export function parse(input: string) {
   };
 }
 
-export function compile(input: string): Chunk<LocatableExtension>[] {
+export function compile(input: string): ExtendedChunk<LocatableExtension>[] {
   const { model, errors } = parse(input);
 
   if (errors.length > 0) {

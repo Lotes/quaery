@@ -1,16 +1,18 @@
-import { TextChunk, ChunkKind, BindingChunk, Unit, ExtendedFunctionCall, ExtendedPropertyAccess, ExtendedUnitAnnotation, ExtendedBindingExpression, ExtendedIdentifier, ExtendedNumberLiteral, ExtendedStringLiteral, ExtendedNullLiteral, ExtendedBooleanLiteral } from "./SyntaxTree";
-import { ExpressionKind } from "./ExpressionKind";
+import { ExtendedTextChunk, ExtendedBindingChunk, Unit, ExtendedFunctionCall, ExtendedPropertyAccess, ExtendedUnitAnnotation, ExtendedNode, ExtendedIdentifier, ExtendedNumberLiteral, ExtendedStringLiteral, ExtendedNullLiteral, ExtendedBooleanLiteral } from "./SyntaxTree";
+import { NodeKind } from "./NodeKind";
 
-export function newTextChunk(text: string): TextChunk {
+export function newTextChunk<TExtension>(text: string, extension: TExtension): ExtendedTextChunk<TExtension> {
   return {
-    kind: ChunkKind.Text,
+    ...extension,
+    kind: NodeKind.TextChunk,
     text
   };
 }
 
-export function newBindingChunk<TExtension>(binding: ExtendedBindingExpression<TExtension>): BindingChunk<TExtension> {
+export function newBindingChunk<TExtension>(binding: ExtendedNode<TExtension>, extension: TExtension): ExtendedBindingChunk<TExtension> {
   return {
-    kind: ChunkKind.Binding,
+    ...extension,
+    kind: NodeKind.BindingChunk,
     binding
   };
 }
@@ -18,7 +20,7 @@ export function newBindingChunk<TExtension>(binding: ExtendedBindingExpression<T
 export function newIdentifier<TExtension>(name: string, extension: TExtension): ExtendedIdentifier<TExtension> {
   return {
     ...extension,
-    kind: ExpressionKind.Identifier,
+    kind: NodeKind.Identifier,
     name
   };
 }
@@ -26,7 +28,7 @@ export function newIdentifier<TExtension>(name: string, extension: TExtension): 
 export function newNumber<TExtension>(value: number, extension: TExtension): ExtendedNumberLiteral<TExtension> {
   return {
     ...extension,
-    kind: ExpressionKind.Number,
+    kind: NodeKind.Number,
     value
   };
 }
@@ -34,7 +36,7 @@ export function newNumber<TExtension>(value: number, extension: TExtension): Ext
 export function newString<TExtension>(value: string, extension: TExtension): ExtendedStringLiteral<TExtension> {
   return {
     ...extension,
-    kind: ExpressionKind.String,
+    kind: NodeKind.String,
     value
   };
 }
@@ -42,40 +44,40 @@ export function newString<TExtension>(value: string, extension: TExtension): Ext
 export function newNull<TExtension>(extension: TExtension): ExtendedNullLiteral<TExtension> {
   return {
     ...extension,
-    kind: ExpressionKind.Null
+    kind: NodeKind.Null
   };
 }
 
 export function newBoolean<TExtension>(value: boolean, extension: TExtension): ExtendedBooleanLiteral<TExtension> {
   return {
     ...extension,
-    kind: ExpressionKind.Boolean,
+    kind: NodeKind.Boolean,
     value
   }
 }
 
-export function newUnitAnnotation<TExtension>(operand: ExtendedBindingExpression<TExtension>, unit: Unit, extension: TExtension): ExtendedUnitAnnotation<TExtension> {
+export function newUnitAnnotation<TExtension>(operand: ExtendedNode<TExtension>, unit: Unit, extension: TExtension): ExtendedUnitAnnotation<TExtension> {
   return {
     ...extension,
-    kind: ExpressionKind.UnitAnnotation,
+    kind: NodeKind.UnitAnnotation,
     operand,
     unit
   }
 }
 
-export function newPropertyAccess<TExtension>(operand: ExtendedBindingExpression<TExtension>, name: string, extension: TExtension): ExtendedPropertyAccess<TExtension> {
+export function newPropertyAccess<TExtension>(operand: ExtendedNode<TExtension>, name: string, extension: TExtension): ExtendedPropertyAccess<TExtension> {
   return {
     ...extension,
-    kind: ExpressionKind.PropertyAccess,
+    kind: NodeKind.PropertyAccess,
     name,
     operand
   };
 }
 
-export function newFunctionCall<TExtension>(operand: ExtendedBindingExpression<TExtension>, actualParameters: ExtendedBindingExpression<TExtension>[], extension: TExtension): ExtendedFunctionCall<TExtension> {
+export function newFunctionCall<TExtension>(operand: ExtendedNode<TExtension>, actualParameters: ExtendedNode<TExtension>[], extension: TExtension): ExtendedFunctionCall<TExtension> {
   return {
     ...extension,
-    kind: ExpressionKind.FunctionCall,
+    kind: NodeKind.FunctionCall,
     actualParameters,
     operand
   };

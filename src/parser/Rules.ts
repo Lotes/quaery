@@ -7,5 +7,6 @@ export enum Rule {
   FunctionCall = "FunctionCall",
   PropertyAccess = "PropertyAccess",
   UnitAnnotation = "UnitAnnotation",
-  BindingChunk = "BindingChunk"
+  BindingChunk = "BindingChunk",
+  TextChunk = "TextChunk"
 }

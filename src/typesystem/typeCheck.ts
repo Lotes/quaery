@@ -1,7 +1,7 @@
 import { Type, TypeSystem, Primitives, CoercionRule, TypeKind, ComplexTypeScope, MethodDescriptor } from "./TypeSystem";
 import { createFold, AbstractSyntaxTreeFolder } from "../ast/fold";
-import { BindingExpression, ExtendedBindingExpression, BindingChunk, ExtendedIdentifier, ExtendedStringLiteral, ExtendedNumberLiteral, ExtendedBooleanLiteral, ExtendedUnitAnnotation, ExtendedPropertyAccess, ExtendedFunctionCall, ExtendedNullLiteral, BaseUnitAnnotation, BasePropertyAccess, BaseFunctionCall } from "../ast/SyntaxTree";
-import { ExpressionKind } from "../ast/ExpressionKind";
+import { Node, ExtendedNode, ExtendedIdentifier, ExtendedStringLiteral, ExtendedNumberLiteral, ExtendedBooleanLiteral, ExtendedUnitAnnotation, ExtendedPropertyAccess, ExtendedFunctionCall, ExtendedNullLiteral, BaseUnitAnnotation, BasePropertyAccess, BaseFunctionCall, BaseTextChunk, ExtendedChunk, BaseBindingChunk, ExtendedBindingChunk } from "../ast/SyntaxTree";
+import { NodeKind } from "../ast/NodeKind";
 
 export interface TypeExtension {
   resolved: boolean;
@@ -9,19 +9,26 @@ export interface TypeExtension {
   operation?: CoercionRule;
 }
 
-export type TypedBindingExpression = ExtendedBindingExpression<TypeExtension>;
+export type TypedBindingExpression = ExtendedNode<TypeExtension>;
 
 type TypedBindingExpressionPromiseThenCallback = (binding: TypedBindingExpression) => TypedBindingExpression;
 
 class TypeChecker extends AbstractSyntaxTreeFolder<TypeSystem, {}, TypeExtension> {
-  visitBinding(binding: ExtendedBindingExpression<{}>, arg: TypeSystem): ExtendedBindingExpression<TypeExtension> {
+  visitChunk_Text(chunk: BaseTextChunk, arg: TypeSystem): ExtendedChunk<TypeExtension> {
+    return {
+      ...chunk,
+      resolved: true,
+      semantics: Primitives.String
+    }
+  }
+  visitBinding(binding: ExtendedNode<{}>, arg: TypeSystem): ExtendedNode<TypeExtension> {
     switch (binding.kind) {
-      case ExpressionKind.Boolean: return this.visitBinding_BooleanLiteral(binding as unknown as ExtendedBooleanLiteral<{}>, arg);
-      case ExpressionKind.Number: return this.visitBinding_NumberLiteral(binding as unknown as ExtendedNumberLiteral<{}>, arg);
-      case ExpressionKind.String: return this.visitBinding_StringLiteral(binding as unknown as ExtendedStringLiteral<{}>, arg);
-      case ExpressionKind.Null: return this.visitBinding_NullLiteral(binding as unknown as ExtendedNullLiteral<{}>, arg);
-      case ExpressionKind.Identifier: return this.visitBinding_Identifier(binding as unknown as ExtendedIdentifier<{}>, arg);
-      case ExpressionKind.PropertyAccess: {
+      case NodeKind.Boolean: return this.visitBinding_BooleanLiteral(binding as unknown as ExtendedBooleanLiteral<{}>, arg);
+      case NodeKind.Number: return this.visitBinding_NumberLiteral(binding as unknown as ExtendedNumberLiteral<{}>, arg);
+      case NodeKind.String: return this.visitBinding_StringLiteral(binding as unknown as ExtendedStringLiteral<{}>, arg);
+      case NodeKind.Null: return this.visitBinding_NullLiteral(binding as unknown as ExtendedNullLiteral<{}>, arg);
+      case NodeKind.Identifier: return this.visitBinding_Identifier(binding as unknown as ExtendedIdentifier<{}>, arg);
+      case NodeKind.PropertyAccess: {
         const propertyIn = binding as unknown as ExtendedPropertyAccess<{}>;
         const propertyOperandOut = this.visitBinding(propertyIn.operand, arg);
         return this.visitBinding_Property({
@@ -30,7 +37,7 @@ class TypeChecker extends AbstractSyntaxTreeFolder<TypeSystem, {}, TypeExtension
           operand: propertyOperandOut,
         }, arg);
       }
-      case ExpressionKind.FunctionCall: {
+      case NodeKind.FunctionCall: {
         const functionCallIn = binding as unknown as ExtendedFunctionCall<{}>;
         const operandOut = this.visitBinding(functionCallIn.operand, arg);
         const parametersOut = functionCallIn.actualParameters.map(p => this.visitBinding(p, arg));
@@ -40,7 +47,7 @@ class TypeChecker extends AbstractSyntaxTreeFolder<TypeSystem, {}, TypeExtension
           actualParameters: parametersOut
         }, arg);
       }
-      case ExpressionKind.UnitAnnotation: {
+      case NodeKind.UnitAnnotation: {
         const unitAnnotationIn = binding as unknown as ExtendedUnitAnnotation<{}>;
         const operandOut = this.visitBinding(unitAnnotationIn.operand, arg);
         return this.visitBinding_UnitAnnotation({
@@ -48,26 +55,31 @@ class TypeChecker extends AbstractSyntaxTreeFolder<TypeSystem, {}, TypeExtension
           operand: operandOut
         }, arg);
       }
+      default:
+        throw new Error("Not implemented yet!");
     }
   }
-  visitChunk_Binding(chunk: BindingChunk<TypeExtension>, arg: TypeSystem): BindingChunk<TypeExtension> {
+  visitChunk_Binding(chunk: BaseBindingChunk<TypeExtension>, arg: TypeSystem): ExtendedBindingChunk<TypeExtension> {
+    const binding = this.coerceTypeIfNeeded(chunk.binding, arg, Primitives.String);
     return {
       ...chunk,
-      binding: this.coerceTypeIfNeeded(chunk.binding, arg, Primitives.String)
+      binding,
+      resolved: binding.resolved,
+      semantics: Primitives.String
     };
   }
-  visitBinding_UnitAnnotation(annotation: BaseUnitAnnotation<TypeExtension>, arg: TypeSystem): ExtendedBindingExpression<TypeExtension> {
+  visitBinding_UnitAnnotation(annotation: BaseUnitAnnotation<TypeExtension>, arg: TypeSystem): ExtendedNode<TypeExtension> {
     let targetType: Type = {
       kind: TypeKind.Measurable,
       description: annotation.unit
     };
     return this.coerceTypeIfNeeded(annotation.operand, arg, targetType);
   }
-  visitBinding_Property(property: BasePropertyAccess<TypeExtension>, arg: TypeSystem): ExtendedBindingExpression<TypeExtension> {
+  visitBinding_Property(property: BasePropertyAccess<TypeExtension>, arg: TypeSystem): ExtendedNode<TypeExtension> {
     const operand = property.operand;
     return this.promiseWhenResolved(operand, binding => {
       const template = {
-        kind: ExpressionKind.PropertyAccess,
+        kind: NodeKind.PropertyAccess,
         name: property.name,
         operand: binding,
         resolved: false,
@@ -100,7 +112,7 @@ class TypeChecker extends AbstractSyntaxTreeFolder<TypeSystem, {}, TypeExtension
     });
 
   }
-  visitBinding_FunctionCall(functionCall: BaseFunctionCall<TypeExtension>, arg: TypeSystem): ExtendedBindingExpression<TypeExtension> {
+  visitBinding_FunctionCall(functionCall: BaseFunctionCall<TypeExtension>, arg: TypeSystem): ExtendedNode<TypeExtension> {
     return this.promiseWhenResolved(functionCall.operand, binding => {
       const operandType = binding.semantics as Type;
       if (operandType.kind === TypeKind.Callable) {
@@ -122,35 +134,35 @@ class TypeChecker extends AbstractSyntaxTreeFolder<TypeSystem, {}, TypeExtension
       }
     });
   }
-  visitBinding_StringLiteral(binding: ExtendedStringLiteral<{}>, arg: TypeSystem): ExtendedBindingExpression<TypeExtension> {
+  visitBinding_StringLiteral(binding: ExtendedStringLiteral<{}>, arg: TypeSystem): ExtendedNode<TypeExtension> {
     return {
       ...binding,
       resolved: true,
       semantics: Primitives.String,
     };
   }
-  visitBinding_NumberLiteral(binding: ExtendedNumberLiteral<{}>, arg: TypeSystem): ExtendedBindingExpression<TypeExtension> {
+  visitBinding_NumberLiteral(binding: ExtendedNumberLiteral<{}>, arg: TypeSystem): ExtendedNode<TypeExtension> {
     return {
       ...binding,
       resolved: true,
       semantics: Primitives.Number,
     };
   }
-  visitBinding_BooleanLiteral(binding: ExtendedBooleanLiteral<{}>, arg: TypeSystem): ExtendedBindingExpression<TypeExtension> {
+  visitBinding_BooleanLiteral(binding: ExtendedBooleanLiteral<{}>, arg: TypeSystem): ExtendedNode<TypeExtension> {
     return {
       ...binding,
       resolved: true,
       semantics: Primitives.Boolean,
     };
   }
-  visitBinding_NullLiteral(binding: ExtendedNullLiteral<{}>, arg: TypeSystem): ExtendedBindingExpression<TypeExtension> {
+  visitBinding_NullLiteral(binding: ExtendedNullLiteral<{}>, arg: TypeSystem): ExtendedNode<TypeExtension> {
     return {
-      kind: ExpressionKind.Null,
+      kind: NodeKind.Null,
       resolved: true,
       semantics: null,
     };
   }
-  visitBinding_Identifier(binding: ExtendedIdentifier<{}>, arg: TypeSystem): ExtendedBindingExpression<TypeExtension> {
+  visitBinding_Identifier(binding: ExtendedIdentifier<{}>, arg: TypeSystem): ExtendedNode<TypeExtension> {
     const global = arg.globals.lookup(binding.name);
     if (global != null) {
       return {
@@ -172,7 +184,7 @@ class TypeChecker extends AbstractSyntaxTreeFolder<TypeSystem, {}, TypeExtension
         const castOperation = arg.getCoercionRule(bnd2.semantics as Type, targetType);
         return this.promiseWhen(bnd2, () => castOperation != null, () => new Error("No coercion rule!"), bnd3 => {
           return {
-            kind: ExpressionKind.FunctionCall,
+            kind: NodeKind.FunctionCall,
             actualParameters: [],
             operand: bnd3,
             resolved: true,
@@ -204,4 +216,4 @@ class TypeChecker extends AbstractSyntaxTreeFolder<TypeSystem, {}, TypeExtension
   }
 };
 
-export const typeCheck = createFold<TypeSystem, BindingExpression, TypedBindingExpression>(new TypeChecker());
+export const typeCheck = createFold<TypeSystem, Node, TypedBindingExpression>(new TypeChecker());

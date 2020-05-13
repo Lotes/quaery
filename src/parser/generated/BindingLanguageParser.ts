@@ -181,11 +181,11 @@ export class BindingLanguageParser extends Parser {
 			this.enterOuterAlt(_localctx, 1);
 			{
 			this.state = 32;
-			this.match(BindingLanguageParser.LMUSTACHE);
+			_localctx._lmustache = this.match(BindingLanguageParser.LMUSTACHE);
 			this.state = 33;
 			this.bindingExpression();
 			this.state = 34;
-			this.match(BindingLanguageParser.RMUSTACHE);
+			_localctx._rmustache = this.match(BindingLanguageParser.RMUSTACHE);
 			}
 		}
 		catch (re) {
@@ -665,10 +665,12 @@ export class BindingChunkContext extends ChunkContext {
 
 
 export class BindingContext extends ParserRuleContext {
-	public LMUSTACHE(): TerminalNode { return this.getToken(BindingLanguageParser.LMUSTACHE, 0); }
+	public _lmustache: Token;
+	public _rmustache: Token;
 	public bindingExpression(): BindingExpressionContext {
 		return this.getRuleContext(0, BindingExpressionContext);
 	}
+	public LMUSTACHE(): TerminalNode { return this.getToken(BindingLanguageParser.LMUSTACHE, 0); }
 	public RMUSTACHE(): TerminalNode { return this.getToken(BindingLanguageParser.RMUSTACHE, 0); }
 	constructor(parent: ParserRuleContext | undefined, invokingState: number) {
 		super(parent, invokingState);
