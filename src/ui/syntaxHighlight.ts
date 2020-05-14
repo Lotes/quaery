@@ -6,6 +6,7 @@ import { LocatableExtension, LocatablePropertyAccess, LocatableUnitAnnotation, L
 import { ExtendedNode, BaseUnitAnnotation, BasePropertyAccess, BaseFunctionCall, ExtendedStringLiteral, ExtendedNumberLiteral, ExtendedBooleanLiteral, ExtendedNullLiteral, ExtendedIdentifier, ExtendedPropertyAccess, ExtendedUnitAnnotation, ExtendedFunctionCall, ExtendedBindingChunk, BaseBindingChunk, BaseTextChunk, ExtendedChunk } from "../ast/SyntaxTree";
 import { Rule } from "../parser/Rules";
 import { NodeKind } from "../ast/NodeKind";
+import { LocationKind } from "../errors/SyntaxError";
 
 const createTokenSpan = (content: string, tokenType: number) => {
   const span = document.createElement("span");
@@ -93,7 +94,7 @@ class TokenTreeFolder
       result.push(child);
       tokenIndex = right;
     }
-    while (tokenIndex < stopIndex) {
+    while (tokenIndex <= stopIndex) {
       result.push(this.tokens[tokenIndex]);
       tokenIndex++;
     }
@@ -118,34 +119,31 @@ class TokenTreeFolder
       case NodeKind.PropertyAccess: {
         const unprocessed = binding as ExtendedPropertyAccess<LocatablePropertyAccess>;
         const operand = this.visitBinding(unprocessed.operand, arg);
-        const processed: ExtendedPropertyAccess<LocatableExtension & ResultExtension> = {
+        const processed: BasePropertyAccess<LocatableExtension & ResultExtension> = {
           ...unprocessed,
-          operand,
-          node: this.createTokenTree(Rule.PropertyAccess, [operand.node, unprocessed.tokenDot, unprocessed.tokenId], unprocessed)
+          operand
         };
-        return processed;
+        return this.visitBinding_Property(processed, arg);
       }
       case NodeKind.UnitAnnotation: {
         const unprocessed = binding as ExtendedUnitAnnotation<LocatableUnitAnnotation>;
         const operand = this.visitBinding(unprocessed.operand, arg);
-        const processed: ExtendedUnitAnnotation<LocatableExtension & ResultExtension> = {
+        const processed: BaseUnitAnnotation<LocatableExtension & ResultExtension> = {
           ...unprocessed,
-          operand,
-          node: this.createTokenTree(Rule.UnitAnnotation, [operand.node, unprocessed.tokenUnit], unprocessed)
+          operand
         }
-        return processed;
+        return this.visitBinding_UnitAnnotation(processed, arg);
       }
       case NodeKind.FunctionCall: {
         const unprocessed = binding as ExtendedFunctionCall<LocatableFunctionCall>;
         const operand = this.visitBinding(unprocessed.operand, arg);
         const actualParameters = unprocessed.actualParameters.map(p => this.visitBinding(p, arg));
-        const processed: ExtendedFunctionCall<LocatableExtension & ResultExtension> = {
+        const processed = {
           ...binding,
           actualParameters,
-          operand,
-          node: this.createTokenTree(Rule.FunctionCall, [operand.node, unprocessed.tokenLeftParenthesis].concat(join(actualParameters.map(p => p.node), unprocessed.tokenCommas)).concat([unprocessed.tokenRightParenthesis]), unprocessed)
+          operand
         };
-        return processed;
+        return this.visitBinding_FunctionCall(processed, arg);
       }
       default:
         throw new Error("Not implemented yet!");
@@ -162,13 +160,33 @@ class TokenTreeFolder
   }
 
   visitBinding_UnitAnnotation(annotation: BaseUnitAnnotation<LocatableExtension & ResultExtension>, arg: {}): ExtendedNode<LocatableExtension & ResultExtension> {
-    throw new Error("Method not implemented.");
+    const operand = annotation.operand;
+    const locatable = annotation as unknown as LocatableUnitAnnotation;
+    return {
+      ...locatable,
+      ...annotation,
+      node: this.createTokenTree(Rule.UnitAnnotation, [operand.node, locatable.tokenUnit], locatable)
+    };
   }
   visitBinding_Property(property: BasePropertyAccess<LocatableExtension & ResultExtension>, arg: {}): ExtendedNode<LocatableExtension & ResultExtension> {
-    throw new Error("Method not implemented.");
+    const operand = property.operand;
+    const locatable = property as unknown as LocatablePropertyAccess;
+    return {
+      ...locatable,
+      ...property,
+      node: this.createTokenTree(Rule.PropertyAccess, [operand.node, locatable.tokenDot, locatable.tokenId], locatable)
+    }
   }
   visitBinding_FunctionCall(functionCall: BaseFunctionCall<LocatableExtension & ResultExtension>, arg: {}): ExtendedNode<LocatableExtension & ResultExtension> {
-    throw new Error("Method not implemented.");
+    const operand = functionCall.operand;
+    const actualParameters = functionCall.actualParameters;
+    const locatable = functionCall as unknown as LocatableFunctionCall;
+    debugger
+    return {
+      ...locatable,
+      ...functionCall,
+      node: this.createTokenTree(Rule.FunctionCall, [operand.node, locatable.tokenLeftParenthesis].concat(join(actualParameters.map(p => p.node), locatable.tokenCommas)).concat([locatable.tokenRightParenthesis]), locatable)
+    };
   }
   visitBinding_StringLiteral(binding: ExtendedStringLiteral<LocatableExtension>, arg: {}): ExtendedNode<LocatableExtension & ResultExtension> {
     return {
@@ -219,11 +237,40 @@ function toHTML(spans: Map<number, HTMLElement>, tree: TokenTree): HTMLElement {
 }
 
 export function highlight(dom: HTMLElement, input: string): void {
-  const { tokens, model } = parse(input);
+  const { tokens, lexerErrors, parserErrors, model } = parse(input);
   const spans = new Map<number, HTMLElement>();
   tokens.forEach(tk => spans.set(tk.tokenIndex, createTokenSpan(tk.text!, tk.type)));
+  if (lexerErrors.length > 0 || parserErrors.length > 0) {
+    spans.forEach(span => dom.appendChild(span))
+
+    lexerErrors.concat(parserErrors).forEach(error => {
+      let startIndex: number;
+      let stopIndex: number;
+      switch (error.location.kind) {
+        case LocationKind.Offset: {
+          const startOffset = error.location.start as number;
+          const stopOffset = error.location.stop as number;
+          startIndex = tokens.findIndex(tk => tk.startIndex <= startOffset);
+          stopIndex = tokens.findIndex(tk => stopOffset <= tk.stopIndex);
+          break;
+        }
+        case LocationKind.Token: {
+          startIndex = (error.location.start as Token)!.tokenIndex;
+          stopIndex = (error.location.stop as Token)!.tokenIndex;
+          break;
+        }
+      }
+      for (let index = startIndex; index <= stopIndex; index++) {
+        const span = spans.get(index)!;
+        const value = span.getAttribute("class");
+        span.setAttribute("class", value + " error");
+      }
+    });
+    return;
+  }
+
   const folder = new TokenTreeFolder(tokens);
-  model
+  model!
     .map(ch => folder.visitChunk(ch, spans).node)
     .forEach(ch => dom.appendChild(toHTML(spans, ch)))
     ;

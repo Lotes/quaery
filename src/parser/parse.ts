@@ -8,10 +8,10 @@ import { LocatableExtension } from "../ast/TokenExtensions";
 import { SyntaxError, LocationKind, Location } from "../errors/SyntaxError";
 
 export function parse(input: string) {
-  const errors: Error[] = [];
+  let errors: SyntaxError[] = [];
   const errorListener: ANTLRErrorListener<Token> = {
     syntaxError(_recognizer, _offendingSymbol, _line, _positionInLine, _message, e) {
-      let error: Error;
+      let error: SyntaxError;
       let match;
       const charIndex = (_recognizer as any)._tokenStartCharIndex as number;
       const location: Location = _offendingSymbol != null
@@ -67,20 +67,25 @@ export function parse(input: string) {
     type: tk.type,
     tokenIndex: index
   }));
-  lexer.reset();
+  const lexerErrors = errors;
 
+  errors = [];
+  lexer.reset();
   const parser = new BindingLanguageParser(tokenStream);
   parser.removeErrorListeners();
   parser.addErrorListener(errorListener);
-
   const tree = parser.chunks();
-  const visitor = new ChunkSequenceVisitor();
-  const model = visitor.visit(tree);
+  const parserErrors = errors;
 
+  const visitor = new ChunkSequenceVisitor();
+  const hasAnyErrors = lexerErrors.length > 0 || parserErrors.length > 0;
+  const model = hasAnyErrors ? null : visitor.visit(tree);
 
   return {
     tokens,
+    lexerErrors,
     tree,
+    parserErrors,
     model,
     errors
   };
@@ -96,5 +101,5 @@ export function compile(input: string): ExtendedChunk<LocatableExtension>[] {
       throw new AggregateError(errors);
   }
 
-  return model;
+  return model!;
 }

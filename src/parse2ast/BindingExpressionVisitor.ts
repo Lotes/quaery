@@ -5,7 +5,7 @@ import { IdExpressionContext, NumberLiteralContext, StringLiteralContext, Parame
 import { TailVisitor, MemberAccessKind, Parameters } from "./TailVisitor";
 import { newIdentifier, newNumber, newNull, newString, newBoolean, newUnitAnnotation, newPropertyAccess, newFunctionCall } from "../ast/factory";
 import { NodeKind } from "../ast/NodeKind";
-import { LocatableExtension } from "../ast/TokenExtensions";
+import { LocatableExtension, LocatableFunctionCall } from "../ast/TokenExtensions";
 import { Token } from "antlr4ts";
 
 export type LocatableExpression = ExtendedNode<LocatableExtension>;
@@ -37,7 +37,8 @@ export class LocatableExpressionVisitor extends AbstractParseTreeVisitor<Locatab
           ...rhs.locations,
           tokenStart: ctx._start,
           tokenStop: ctx._stop ?? ctx._start,
-        });
+          tokenCommas: parameters.commas
+        } as LocatableFunctionCall);
       }
     }, leaf);
   };
